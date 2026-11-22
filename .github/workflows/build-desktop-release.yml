@@ -37,6 +37,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Setup Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -62,6 +67,8 @@ jobs:
 
       - name: Fetch official Google ADB sidecar(s) & compile Orchestrator sidecar(s)
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for triple in ${{ matrix.sidecar_targets }}; do
             node scripts/fetch-platform-tools.js --target "$triple"

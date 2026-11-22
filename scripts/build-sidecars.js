@@ -34,6 +34,13 @@ function getPkgTarget(triple) {
   return 'node20-linux-x64';
 }
 
+function getBunTarget(triple) {
+  if (triple === 'aarch64-apple-darwin') return 'bun-darwin-arm64';
+  if (triple === 'x86_64-apple-darwin') return 'bun-darwin-x64';
+  if (triple === 'x86_64-pc-windows-msvc') return 'bun-windows-x64';
+  return 'bun-linux-x64';
+}
+
 function commandExists(cmd) {
   try {
     execSync(process.platform === 'win32' ? `where ${cmd}` : `command -v ${cmd}`, {
@@ -43,6 +50,62 @@ function commandExists(cmd) {
   } catch {
     return false;
   }
+}
+
+function resolveNpxCli() {
+  const candidates = [];
+
+  if (process.env.npm_execpath && process.env.npm_execpath.endsWith('.js')) {
+    candidates.push(path.join(path.dirname(process.env.npm_execpath), 'npx-cli.js'));
+  }
+
+  const nodeDir = path.dirname(process.execPath);
+  candidates.push(
+    path.join(nodeDir, 'node_modules', 'npm', 'bin', 'npx-cli.js'),
+    path.join(nodeDir, '..', 'lib', 'node_modules', 'npm', 'bin', 'npx-cli.js')
+  );
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  try {
+    const npmRoot = execSync('npm root -g', {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (npmRoot) {
+      const globalCandidate = path.join(npmRoot, 'npm', 'bin', 'npx-cli.js');
+      if (fs.existsSync(globalCandidate)) {
+        return globalCandidate;
+      }
+    }
+  } catch {
+    // Ignore lookup failures and fall back to npx executable
+  }
+
+  return null;
+}
+
+function runNpx(args) {
+  const npxCli = resolveNpxCli();
+  if (npxCli) {
+    // Invoke npx-cli.js directly via Node so Windows doesn't hit ENOENT on `npx`
+    // or strip quotes from `--define:KEY="val"` via cmd.exe shell parsing.
+    execFileSync(process.execPath, [npxCli, ...args], {
+      cwd: ROOT_DIR,
+      stdio: 'inherit',
+    });
+    return;
+  }
+
+  execFileSync('npx', args, {
+    cwd: ROOT_DIR,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
 }
 
 function loadRootDotEnv() {
@@ -102,21 +165,17 @@ function main() {
     cwd: ROOT_DIR,
     stdio: 'inherit',
   });
-  execFileSync(
-    'npx',
-    [
-      '--yes',
-      'esbuild',
-      path.join(ORCHESTRATOR_DIR, 'src', 'index.ts'),
-      '--bundle',
-      '--platform=node',
-      '--target=node20',
-      '--format=cjs',
-      ...buildPublicDefines(),
-      `--outfile=${distBundle}`,
-    ],
-    { cwd: ROOT_DIR, stdio: 'inherit' }
-  );
+  runNpx([
+    '--yes',
+    'esbuild',
+    path.join(ORCHESTRATOR_DIR, 'src', 'index.ts'),
+    '--bundle',
+    '--platform=node',
+    '--target=node20',
+    '--format=cjs',
+    ...buildPublicDefines(),
+    `--outfile=${distBundle}`,
+  ]);
 
   // 2. Compile standalone qa-orchestrator binary (prefer bun build --compile, fallback to @yao-pkg/pkg)
   const orchestratorOut = path.join(BINARIES_DIR, `qa-orchestrator-${triple}${ext}`);
@@ -125,23 +184,19 @@ function main() {
   if (commandExists('bun')) {
     execFileSync(
       'bun',
-      ['build', '--compile', distBundle, '--outfile', orchestratorOut],
+      ['build', '--compile', `--target=${getBunTarget(triple)}`, distBundle, '--outfile', orchestratorOut],
       { cwd: ROOT_DIR, stdio: 'inherit' }
     );
   } else {
-    execFileSync(
-      'npx',
-      [
-        '--yes',
-        '@yao-pkg/pkg',
-        distBundle,
-        '--targets',
-        getPkgTarget(triple),
-        '--output',
-        orchestratorOut,
-      ],
-      { cwd: ROOT_DIR, stdio: 'inherit' }
-    );
+    runNpx([
+      '--yes',
+      '@yao-pkg/pkg',
+      distBundle,
+      '--targets',
+      getPkgTarget(triple),
+      '--output',
+      orchestratorOut,
+    ]);
   }
 
   console.log(`\nSidecar binary ready in ${BINARIES_DIR}:`);
