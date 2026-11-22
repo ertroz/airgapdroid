@@ -17,7 +17,7 @@ jobs:
         include:
           - platform: macos-latest
             target: universal-apple-darwin
-            sidecar_targets: "aarch64-apple-darwin x86_64-apple-darwin"
+            sidecar_targets: "universal-apple-darwin"
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             sidecar_targets: "x86_64-pc-windows-msvc"
@@ -36,6 +36,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Setup Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -62,6 +67,8 @@ jobs:
 
       - name: Fetch official Google ADB sidecar(s) & compile Orchestrator sidecar(s)
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for triple in ${{ matrix.sidecar_targets }}; do
             node scripts/fetch-platform-tools.js --target "$triple"
