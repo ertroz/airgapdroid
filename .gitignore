@@ -13,7 +13,7 @@ packages/*/build/
 .wrangler/
 
 # Environment & local secrets
-.env
+# .env
 .env.local
 .env.*.local
 
