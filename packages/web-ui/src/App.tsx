@@ -45,6 +45,7 @@ export function App() {
   const [systemLoading, setSystemLoading] = useState(true);
   const [systemModalOpen, setSystemModalOpen] = useState(false);
   const [configuringRuntime, setConfiguringRuntime] = useState(false);
+  const [installingRuntime, setInstallingRuntime] = useState(false);
   const [configuringBinder, setConfiguringBinder] = useState(false);
   const [provisioning, setProvisioning] = useState<ProvisioningState>({
     open: false,
@@ -91,7 +92,24 @@ export function App() {
   const runSystemCheck = useCallback(async (openOnIssues = false) => {
     setSystemLoading(true);
     try {
-      const report = await api.getSystemCheck();
+      let report = await api.getSystemCheck();
+      if (
+        openOnIssues &&
+        report.containerRuntime?.kiriInstalled &&
+        !report.containerRuntime?.kiriRunning &&
+        report.containerRuntime.preferredRuntime !== 'docker'
+      ) {
+        setConfiguringRuntime(true);
+        try {
+          const started = await api.configureRuntime();
+          report = started.report;
+        } catch {
+          // Keep initial report if Kiri could not auto-start
+        } finally {
+          setConfiguringRuntime(false);
+        }
+      }
+
       setSystemReport(report);
       setDevices(report.connectedDevices);
       setMode(report.recommendedMode);
@@ -104,7 +122,12 @@ export function App() {
 
       const needsAttention =
         !report.adbAvailable ||
-        (report.recommendedMode === 'docker' && !report.readyForDocker);
+        (report.recommendedMode === 'docker' && !report.readyForDocker) ||
+        Boolean(
+          report.containerRuntime?.kiriRunning &&
+            report.kernelModulesReady.applicable &&
+            !report.kernelModulesReady.ready
+        );
       if (openOnIssues && needsAttention && report.connectedDevices.length === 0) {
         setSystemModalOpen(true);
       }
@@ -333,6 +356,19 @@ export function App() {
     }
   };
 
+  const handleInstallRuntime = async () => {
+    setInstallingRuntime(true);
+    try {
+      const res = await api.installRuntime();
+      setSystemReport(res.report);
+      notify('success', 'Kiri Installer Ready', res.message);
+    } catch (err) {
+      notify('info', 'Kiri Installer', err instanceof Error ? err.message : 'Check your browser or Downloads folder.');
+    } finally {
+      setInstallingRuntime(false);
+    }
+  };
+
   const handleConfigureBinder = async () => {
     setConfiguringBinder(true);
     try {
@@ -350,9 +386,7 @@ export function App() {
 
   const hasSystemWarning = Boolean(
     systemReport &&
-      (!systemReport.adbAvailable ||
-        (mode === 'docker' && !systemReport.readyForDocker) ||
-        !systemReport.certReady)
+      (!systemReport.adbAvailable || (mode === 'docker' && !systemReport.readyForDocker))
   );
 
   if (engineBooting) {
@@ -445,14 +479,10 @@ export function App() {
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
             <span className="truncate">
               {!systemReport.adbAvailable
-                ? 'ADB binary was not detected on host PATH.'
-                : mode === 'docker' && !systemReport.readyForDocker
-                  ? !systemReport.dockerAvailable
-                    ? systemReport.containerRuntime?.kiriInstalled
-                      ? 'Kiri is installed but not running yet — open System Wizard to configure & start.'
-                      : 'Kiri container runtime not found — install Kiri Official or switch to Direct ADB.'
-                    : 'Android binder kernel support is missing for Redroid containers.'
-                  : 'mitmproxy Android SSL CA cert (<hash>.0) is not generated yet.'}
+                ? 'ADB is not available on this system.'
+                : !systemReport.dockerAvailable
+                  ? 'Virtual Android runtime is not active — switch to Direct ADB or check System Wizard.'
+                  : 'Android binder kernel support is needed for Virtual Android mode.'}
             </span>
           </div>
           <button
@@ -569,10 +599,12 @@ export function App() {
         report={systemReport}
         loading={systemLoading}
         configuringRuntime={configuringRuntime}
+        installingRuntime={installingRuntime}
         configuringBinder={configuringBinder}
         onClose={() => setSystemModalOpen(false)}
         onRecheck={() => void runSystemCheck(false)}
         onConfigureRuntime={() => void handleConfigureRuntime()}
+        onInstallRuntime={() => void handleInstallRuntime()}
         onConfigureBinder={() => void handleConfigureBinder()}
         onSelectMode={(nextMode) => setMode(nextMode)}
       />

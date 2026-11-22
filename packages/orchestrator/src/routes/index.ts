@@ -28,6 +28,7 @@ import {
 import {
   configureBinderSupport,
   configureKiriRuntime,
+  installKiriRuntime,
   listAdbDevices,
   runSystemCheck,
 } from '../services/systemService.js';
@@ -169,6 +170,15 @@ export function createApiRouter(): Router {
     try {
       const devices = await listAdbDevices();
       res.json({ devices });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post('/system/runtime/install', async (_req, res, next) => {
+    try {
+      const result = await installKiriRuntime();
+      res.status(result.ok ? 200 : 400).json(result);
     } catch (err) {
       next(err);
     }

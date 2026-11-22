@@ -9,6 +9,8 @@ declare const __QA_GUMROAD_PRODUCT_ID__: string | undefined;
 declare const __QA_GUMROAD_PRODUCT_PERMALINK__: string | undefined;
 declare const __QA_GUMROAD_CHECKOUT_URL__: string | undefined;
 declare const __QA_GOOGLE_OAUTH_CLIENT_ID__: string | undefined;
+declare const __QA_MACOS_BINDER_KERNEL_URL__: string | undefined;
+declare const __QA_WSL_BINDER_KERNEL_URL__: string | undefined;
 
 const currentDir =
   typeof __dirname !== 'undefined'
@@ -47,6 +49,10 @@ const bakedGumroadCheckoutUrl =
   typeof __QA_GUMROAD_CHECKOUT_URL__ !== 'undefined' ? __QA_GUMROAD_CHECKOUT_URL__ : '';
 const bakedGoogleOAuthClientId =
   typeof __QA_GOOGLE_OAUTH_CLIENT_ID__ !== 'undefined' ? __QA_GOOGLE_OAUTH_CLIENT_ID__ : '';
+const bakedMacosBinderKernelUrl =
+  typeof __QA_MACOS_BINDER_KERNEL_URL__ !== 'undefined' ? __QA_MACOS_BINDER_KERNEL_URL__ : '';
+const bakedWslBinderKernelUrl =
+  typeof __QA_WSL_BINDER_KERNEL_URL__ !== 'undefined' ? __QA_WSL_BINDER_KERNEL_URL__ : '';
 
 const certsHomeDir = path.join(qaStudioHome, 'certs');
 const apkTmpDir = '/tmp/qa-apks';
@@ -73,8 +79,8 @@ export const config = {
   kiriBinary: process.env.KIRI_BINARY?.trim() || 'kiri',
   kiriForkRepo:
     process.env.KIRI_REPO?.trim() || process.env.KIRI_FORK_REPO?.trim() || 'libracoder/kiri',
-  wslBinderKernelUrl: process.env.WSL_BINDER_KERNEL_URL?.trim() || '',
-  macosBinderKernelUrl: process.env.MACOS_BINDER_KERNEL_URL?.trim() || '',
+  wslBinderKernelUrl: process.env.WSL_BINDER_KERNEL_URL?.trim() || bakedWslBinderKernelUrl,
+  macosBinderKernelUrl: process.env.MACOS_BINDER_KERNEL_URL?.trim() || bakedMacosBinderKernelUrl,
   autoStopKiriOnExit: process.env.AUTO_STOP_KIRI_ON_EXIT !== 'false',
   wsScrcpyPort: Number(process.env.WS_SCRCPY_PORT || 8000),
   mitmProxyPort: Number(process.env.MITM_PROXY_PORT || 8080),

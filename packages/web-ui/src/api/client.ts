@@ -69,6 +69,11 @@ export const api = {
   health: () => request<{ status: string }>('/api/health'),
   getSystemCheck: () => request<SystemCheckReport>('/api/system/check'),
   getAdbDevices: () => request<{ devices: AdbDeviceInfo[] }>('/api/system/devices'),
+  installRuntime: () =>
+    request<{ ok: boolean; message: string; installerPath?: string; report: SystemCheckReport }>(
+      '/api/system/runtime/install',
+      { method: 'POST' }
+    ),
   configureRuntime: () =>
     request<{ ok: boolean; message: string; report: SystemCheckReport }>(
       '/api/system/runtime/configure',

@@ -104,7 +104,7 @@ async function injectAndroidSystemCaCert(
     return {
       injected: false,
       status: 'skipped',
-      detail: 'No <hash>.0 certificate found. Run `npm run certs:setup` to enable auto HTTPS CA injection.',
+      detail: 'No Android system CA certificate (<hash>.0) found in ~/.qa-studio/certs/.',
     };
   }
 

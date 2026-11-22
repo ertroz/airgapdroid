@@ -128,8 +128,22 @@ function resolveKiriBinaryPath(): string {
   return configured;
 }
 
-export function getKiriEnv(): NodeJS.ProcessEnv {
+export function getHostToolEnv(): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
+  const extraDirs = [
+    '/opt/homebrew/bin',
+    '/usr/local/bin',
+    path.join(os.homedir(), '.maestro/bin'),
+  ].filter((d) => fs.existsSync(d));
+
+  if (extraDirs.length > 0) {
+    env.PATH = `${extraDirs.join(path.delimiter)}${path.delimiter}${env.PATH || ''}`;
+  }
+  return env;
+}
+
+export function getKiriEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = getHostToolEnv();
   const extraDirs = [
     '/Applications/Kiri.app/Contents/MacOS',
     '/Applications/Kiri.app/Contents/Resources/bin',
@@ -237,12 +251,13 @@ export async function detectContainerRuntime(): Promise<ContainerRuntimeStatus> 
   const forkRepo = config.kiriForkRepo;
   const forkReleasesUrl = `https://github.com/${forkRepo}/releases/latest`;
   const kiriEnv = getKiriEnv();
+  const hostEnv = getHostToolEnv();
 
   const [kiriVer, kiriInfo, dockerVer, dockerInfo] = await Promise.all([
     runCmd(kiriBin, ['--version'], { timeoutMs: 4000, env: kiriEnv }),
     runCmd(kiriBin, ['info', '--format', '{{.ServerVersion}}'], { timeoutMs: 6000, env: kiriEnv }),
-    runCmd('docker', ['--version'], { timeoutMs: 4000 }),
-    runCmd('docker', ['info', '--format', '{{.ServerVersion}}'], { timeoutMs: 6000 }),
+    runCmd('docker', ['--version'], { timeoutMs: 4000, env: hostEnv }),
+    runCmd('docker', ['info', '--format', '{{.ServerVersion}}'], { timeoutMs: 6000, env: hostEnv }),
   ]);
 
   const kiriInstalled = kiriVer.ok || kiriInfo.ok;
@@ -293,7 +308,7 @@ export async function detectContainerRuntime(): Promise<ContainerRuntimeStatus> 
     needsConfig,
     forkRepo,
     forkReleasesUrl,
-    installCommand: 'npm run runtime:install',
+    installCommand: process.platform === 'darwin' ? `brew install --cask ${forkRepo}` : forkReleasesUrl,
     configCommand: `${kiriBin} start`,
   };
 }
@@ -306,7 +321,41 @@ export async function resolveContainerRuntime(): Promise<{
   return { engine: status.engine, binary: status.binary };
 }
 
+let inFlightKiriConfigure: Promise<{
+  ok: boolean;
+  message: string;
+  report: SystemCheckReport;
+}> | null = null;
+
 export async function configureKiriRuntime(): Promise<{
+  ok: boolean;
+  message: string;
+  report: SystemCheckReport;
+}> {
+  if (inFlightKiriConfigure) {
+    return inFlightKiriConfigure;
+  }
+  inFlightKiriConfigure = configureKiriRuntimeImpl().finally(() => {
+    inFlightKiriConfigure = null;
+  });
+  return inFlightKiriConfigure;
+}
+
+export async function autoStartKiriIfInstalled(): Promise<void> {
+  if (config.containerRuntime === 'docker') return;
+  const kiriBin = resolveKiriBinaryPath();
+  const kiriEnv = getKiriEnv();
+  const checkBin = await runCmd(kiriBin, ['--version'], { timeoutMs: 3000, env: kiriEnv });
+  if (!checkBin.ok) return;
+  const checkInfo = await runCmd(kiriBin, ['info', '--format', '{{.ServerVersion}}'], {
+    timeoutMs: 3000,
+    env: kiriEnv,
+  });
+  if (checkInfo.ok) return;
+  await configureKiriRuntime();
+}
+
+async function configureKiriRuntimeImpl(): Promise<{
   ok: boolean;
   message: string;
   report: SystemCheckReport;
@@ -319,7 +368,7 @@ export async function configureKiriRuntime(): Promise<{
     const report = await runSystemCheck();
     return {
       ok: false,
-      message: `'${kiriBin}' is not installed on PATH. Run 'npm run runtime:install' or download from ${report.containerRuntime.forkReleasesUrl}.`,
+      message: `Kiri is not installed yet. Click Download & Install Kiri or download from ${report.containerRuntime.forkReleasesUrl}.`,
       report,
     };
   }
@@ -359,6 +408,136 @@ export async function configureKiriRuntime(): Promise<{
       `Could not start '${kiriBin}'. Open the Kiri desktop app once to complete initial setup.`,
     report,
   };
+}
+
+function openExternalTarget(target: string): void {
+  try {
+    if (process.platform === 'darwin') {
+      spawn('open', [target], { detached: true, stdio: 'ignore' }).unref();
+    } else if (process.platform === 'win32') {
+      spawn('cmd', ['/c', 'start', '', target], { detached: true, stdio: 'ignore' }).unref();
+    } else {
+      spawn('xdg-open', [target], { detached: true, stdio: 'ignore' }).unref();
+    }
+  } catch {
+    // ignore launcher errors
+  }
+}
+
+export async function installKiriRuntime(): Promise<{
+  ok: boolean;
+  message: string;
+  installerPath?: string;
+  report: SystemCheckReport;
+}> {
+  const kiriBin = resolveKiriBinaryPath();
+  const kiriEnv = getKiriEnv();
+  const checkBin = await runCmd(kiriBin, ['--version'], { timeoutMs: 4000, env: kiriEnv });
+
+  if (checkBin.ok) {
+    return configureKiriRuntime();
+  }
+
+  const forkRepo = config.kiriForkRepo;
+  const releasesApi = `https://api.github.com/repos/${forkRepo}/releases/latest`;
+  const releasesWeb = `https://github.com/${forkRepo}/releases/latest`;
+
+  try {
+    const res = await fetch(releasesApi, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'AirgapDroid',
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!res.ok) {
+      throw new Error(`GitHub Releases API returned HTTP ${res.status}`);
+    }
+
+    const release = (await res.json()) as {
+      assets?: Array<{ name?: string; browser_download_url?: string }>;
+    };
+    const assets = release.assets ?? [];
+    const archTokens =
+      process.arch === 'arm64' ? ['arm64', 'aarch64'] : ['x86_64', 'amd64', 'x64'];
+
+    const findAsset = (exts: string[]) =>
+      assets.find((a) => {
+        const name = (a.name || '').toLowerCase();
+        const url = a.browser_download_url || '';
+        if (!url || name.includes('lite')) return false;
+        const hasExt = exts.some((ext) => name.endsWith(ext));
+        const hasArch = archTokens.some((tok) => name.includes(tok));
+        return hasExt && hasArch;
+      });
+
+    let matched =
+      process.platform === 'darwin'
+        ? findAsset(['.dmg'])
+        : process.platform === 'win32'
+          ? findAsset(['.msi', '.exe'])
+          : findAsset(['.deb', '.rpm', '.tar.gz']);
+
+    if (!matched && process.platform === 'linux') {
+      matched = findAsset(['.deb', '.rpm', '.tar.gz']);
+    }
+
+    if (!matched?.browser_download_url) {
+      openExternalTarget(releasesWeb);
+      const report = await runSystemCheck();
+      return {
+        ok: false,
+        message: `Opened Kiri releases page in browser. Download the installer for ${process.platform}/${process.arch}, then click Re-check.`,
+        report,
+      };
+    }
+
+    const downloadRes = await fetch(matched.browser_download_url, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(180_000),
+    });
+
+    if (!downloadRes.ok) {
+      throw new Error(`Failed to download ${matched.name} (HTTP ${downloadRes.status})`);
+    }
+
+    const fileName = path.basename(matched.name || `kiri-installer-${process.arch}`);
+    const outFile = path.join(os.tmpdir(), fileName);
+    const tmpFile = `${outFile}.part`;
+    const buf = Buffer.from(await downloadRes.arrayBuffer());
+    if (buf.length === 0) {
+      throw new Error(`Downloaded installer ${fileName} is empty.`);
+    }
+    fs.writeFileSync(tmpFile, buf);
+    fs.renameSync(tmpFile, outFile);
+
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      openExternalTarget(outFile);
+    }
+
+    const report = await runSystemCheck();
+    return {
+      ok: true,
+      installerPath: outFile,
+      message:
+        process.platform === 'darwin'
+          ? `Downloaded ${fileName} and opened the DMG installer. Drag Kiri to Applications, open Kiri once, then click Re-check.`
+          : process.platform === 'win32'
+            ? `Downloaded ${fileName} and launched the installer. Finish setup, then click Re-check.`
+            : `Downloaded ${fileName} to ${outFile}. Install it, then click Re-check.`,
+      report,
+    };
+  } catch (err) {
+    openExternalTarget(releasesWeb);
+    const report = await runSystemCheck();
+    const detail = err instanceof Error ? err.message : 'Download failed';
+    return {
+      ok: false,
+      message: `${detail}. Opened Kiri releases page in your browser instead.`,
+      report,
+    };
+  }
 }
 
 function upsertWslConfigKernel(wslConfigPath: string, kernelWinPath: string): void {
@@ -709,8 +888,8 @@ async function checkKernelModules(
       binder: false,
       ashmem: false,
       message:
-        'Install your binder-enabled Kiri fork for container Android on macOS/Windows, or use Direct ADB Mode with a physical phone.',
-      fixCommands: ['npm run runtime:install'],
+        'Android kernel check runs automatically when Virtual Android mode is active, or use Direct ADB with a physical phone.',
+      fixCommands: [],
     };
   }
 
@@ -834,7 +1013,7 @@ export async function runSystemCheck(): Promise<SystemCheckReport> {
   const [containerRuntime, adbVersion, maestroVer] = await Promise.all([
     detectContainerRuntime(),
     runCmd('adb', ['version'], { timeoutMs: 5000 }),
-    runCmd('maestro', ['--version'], { timeoutMs: 4000 }),
+    runCmd('maestro', ['--version'], { timeoutMs: 4000, env: getHostToolEnv() }),
   ]);
 
   const kernelModulesReady = await checkKernelModules(isWsl, containerRuntime);
@@ -853,7 +1032,7 @@ export async function runSystemCheck(): Promise<SystemCheckReport> {
 
   const dockerFixCommand = containerRuntime.kiriInstalled
     ? containerRuntime.configCommand
-    : containerRuntime.installCommand;
+    : undefined;
 
   const adbFixCommand =
     platform === 'linux'

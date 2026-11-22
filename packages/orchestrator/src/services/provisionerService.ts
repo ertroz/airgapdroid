@@ -8,6 +8,7 @@ import { runCmd, sleep } from '../utils/shell.js';
 import { mitmWebProxyService } from './mitmWebProxyService.js';
 import { screenStreamService, supportsMediaCodecH264 } from './screenStreamService.js';
 import {
+  configureKiriRuntime,
   detectContainerRuntime,
   getKiriEnv,
   resolveContainerRuntime,
@@ -114,15 +115,14 @@ export async function startContainerRuntime(): Promise<{
     };
   }
 
-  const kiriEnv = getKiriEnv();
   if (current.kiriInstalled) {
-    await runCmd(current.binary, ['start'], { timeoutMs: 15_000, env: kiriEnv });
-    if (await pollRuntimeReady(current.binary, kiriEnv, 25_000)) {
+    const kiriRes = await configureKiriRuntime();
+    if (kiriRes.ok) {
       return {
         ok: true,
         provider: 'kiri',
         message: 'Kiri container runtime started automatically.',
-        report: await runSystemCheck(),
+        report: kiriRes.report,
       };
     }
   }

@@ -45,12 +45,35 @@ function commandExists(cmd) {
   }
 }
 
+function loadRootDotEnv() {
+  const envPath = path.join(ROOT_DIR, '.env');
+  if (!fs.existsSync(envPath)) return {};
+  const parsed = {};
+  for (const rawLine of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq <= 0) continue;
+    const key = line.slice(0, eq).trim();
+    let val = line.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    parsed[key] = val;
+  }
+  return parsed;
+}
+
 function buildPublicDefines() {
+  const dotEnv = loadRootDotEnv();
+  const readPublic = (key) => (process.env[key]?.trim() || dotEnv[key]?.trim() || '');
   const publicMap = [
-    ['__QA_GUMROAD_PRODUCT_ID__', process.env.GUMROAD_PRODUCT_ID?.trim() || ''],
-    ['__QA_GUMROAD_PRODUCT_PERMALINK__', process.env.GUMROAD_PRODUCT_PERMALINK?.trim() || ''],
-    ['__QA_GUMROAD_CHECKOUT_URL__', process.env.GUMROAD_CHECKOUT_URL?.trim() || ''],
-    ['__QA_GOOGLE_OAUTH_CLIENT_ID__', process.env.GOOGLE_OAUTH_CLIENT_ID?.trim() || ''],
+    ['__QA_GUMROAD_PRODUCT_ID__', readPublic('GUMROAD_PRODUCT_ID')],
+    ['__QA_GUMROAD_PRODUCT_PERMALINK__', readPublic('GUMROAD_PRODUCT_PERMALINK')],
+    ['__QA_GUMROAD_CHECKOUT_URL__', readPublic('GUMROAD_CHECKOUT_URL')],
+    ['__QA_GOOGLE_OAUTH_CLIENT_ID__', readPublic('GOOGLE_OAUTH_CLIENT_ID')],
+    ['__QA_MACOS_BINDER_KERNEL_URL__', readPublic('MACOS_BINDER_KERNEL_URL')],
+    ['__QA_WSL_BINDER_KERNEL_URL__', readPublic('WSL_BINDER_KERNEL_URL')],
   ];
   return publicMap
     .filter(([, val]) => val.length > 0)

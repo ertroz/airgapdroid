@@ -8,6 +8,7 @@ import { logcatService } from './services/logcatService.js';
 import { mitmWebProxyService } from './services/mitmWebProxyService.js';
 import { screenStreamService } from './services/screenStreamService.js';
 import { cleanupStudioOnShutdown } from './services/sessionService.js';
+import { autoStartKiriIfInstalled } from './services/systemService.js';
 
 ensureStudioDirectories();
 
@@ -59,6 +60,7 @@ server.on('upgrade', (request, socket, head) => {
 
 server.listen(config.port, () => {
   void mitmWebProxyService.ensureStarted();
+  void autoStartKiriIfInstalled();
   console.log('');
   console.log('==============================================================');
   console.log(` AirgapDroid — Orchestrator listening on :${config.port}`);
