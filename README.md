@@ -1,4 +1,4 @@
-# Local Web QA Studio
+# AirgapDroid
 
 Alternatif ringan dan 100% lokal (`localhost`) pengganti Android Studio Emulator (AVD) dan BrowserStack, dilengkapi antarmuka web modern, Live HTTPS Network Inspector, Dynamic Firebase App Distribution Switcher, dan WebSocket Error Logcat.
 

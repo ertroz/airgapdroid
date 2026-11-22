@@ -61,7 +61,7 @@ server.listen(config.port, () => {
   void mitmWebProxyService.ensureStarted();
   console.log('');
   console.log('==============================================================');
-  console.log(` Local Web QA Studio — Orchestrator listening on :${config.port}`);
+  console.log(` AirgapDroid — Orchestrator listening on :${config.port}`);
   console.log(`   REST API   : http://localhost:${config.port}/api`);
   console.log(`   WS Logcat  : ws://localhost:${config.port}/ws/logcat`);
   console.log(`   WS Screen  : ws://localhost:${config.port}/ws/screen`);

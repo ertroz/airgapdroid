@@ -20,6 +20,7 @@ import type {
   RuntimeMode,
   SystemCheckReport,
 } from '../types';
+import { BrandLogo } from './BrandLogo';
 
 interface TopToolbarProps {
   mode: RuntimeMode;
@@ -86,13 +87,11 @@ export function TopToolbar({
     <header className="flex min-h-[54px] flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white px-4 py-2">
       {/* Left: Brand Breadcrumb + Session Target Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Clean Geometric Logo + TestMu-style Breadcrumb */}
+        {/* Brand Logo + Breadcrumb */}
         <div className="flex items-center gap-2.5 pr-1">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-[#111827] bg-[#111827] font-mono text-[11px] font-bold tracking-tight text-white">
-            QA
-          </div>
+          <BrandLogo className="h-7 w-7 shrink-0" />
           <div className="hidden items-center gap-1.5 text-xs sm:flex">
-            <span className="font-semibold text-[#111827]">QA Studio</span>
+            <span className="font-semibold text-[#111827]">AirgapDroid</span>
             <span className="text-[#9CA3AF]">/</span>
             <span className="font-medium text-[#6B7280]">App Live Workbench</span>
           </div>

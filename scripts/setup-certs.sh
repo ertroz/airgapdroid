@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# Local Web QA Studio — mitmproxy CA Certificate Generator & Android Converter
+# AirgapDroid — mitmproxy CA Certificate Generator & Android Converter
 # Generates a mitmproxy-compatible CA if none exists, then converts it into
 # Android's system certificate format: <subject_hash_old>.0
 # ==============================================================================
@@ -16,7 +16,7 @@ CERT_PEM="${MITM_DIR}/mitmproxy-ca-cert.pem"
 CA_COMBINED="${MITM_DIR}/mitmproxy-ca.pem"
 
 echo "============================================================"
-echo " Local Web QA Studio — Android SSL System Certificate Setup"
+echo " AirgapDroid — Android SSL System Certificate Setup"
 echo "============================================================"
 
 if ! command -v openssl >/dev/null 2>&1; then
@@ -54,7 +54,7 @@ if [[ ! -f "${CERT_PEM}" ]]; then
     openssl req -x509 -new -nodes \
       -key "${TMP_KEY}" \
       -sha256 -days 3650 \
-      -subj "/CN=mitmproxy/O=Local Web QA Studio" \
+      -subj "/CN=mitmproxy/O=AirgapDroid" \
       -addext "basicConstraints=critical,CA:TRUE" \
       -addext "keyUsage=critical,keyCertSign,cRLSign" \
       -out "${CERT_PEM}" >/dev/null 2>&1

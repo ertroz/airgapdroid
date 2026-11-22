@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Local Web QA Studio",
+  "productName": "AirgapDroid",
   "version": "1.0.0",
-  "identifier": "com.qastudio.desktop",
+  "identifier": "com.airgapdroid.desktop",
   "build": {
     "devUrl": "http://localhost:3000",
     "frontendDist": "../../web-ui/dist"
@@ -10,7 +10,7 @@
   "app": {
     "windows": [
       {
-        "title": "Local Web QA Studio",
+        "title": "AirgapDroid",
         "width": 1440,
         "height": 900,
         "minWidth": 1100,
@@ -29,6 +29,8 @@
     "active": true,
     "targets": "all",
     "icon": [
+      "icons/icon.icns",
+      "icons/icon.ico",
       "icons/icon.png",
       "icons/32x32.png",
       "icons/128x128.png",

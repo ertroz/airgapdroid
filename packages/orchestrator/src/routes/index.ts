@@ -390,7 +390,7 @@ export function createApiRouter(): Router {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Local Web QA Studio — Google Authentication</title>
+  <title>AirgapDroid — Google Authentication</title>
   <style>
     body { font-family: Inter, system-ui, sans-serif; background: #09090b; color: #f4f4f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
     .card { background: #141418; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 28px 32px; max-width: 420px; text-align: center; }

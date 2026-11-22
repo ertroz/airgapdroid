@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Loader2, Radio, ShieldCheck, Smartphone, Wifi, Wrench } from 'lucide-react';
 import { api } from './api/client';
 import { AutomationDrawer } from './components/AutomationDrawer';
+import { BrandLogo } from './components/BrandLogo';
 import { BugReportModal } from './components/BugReportModal';
 import { ClearDataModal } from './components/ClearDataModal';
 import { FirebaseDrawer } from './components/FirebaseDrawer';
@@ -358,12 +359,10 @@ export function App() {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-[#F7F8FA] text-[#111827]">
         <div className="flex flex-col items-center rounded-xl border border-[#E5E7EB] bg-white px-8 py-7 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#111827] font-mono text-sm font-bold text-white">
-            QA
-          </div>
+          <BrandLogo className="h-11 w-11" />
           <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#111827]">
             <Loader2 className="h-4 w-4 animate-spin text-[#E54D2E]" />
-            Starting QA Engine...
+            Starting AirgapDroid...
           </div>
           <p className="mt-1 text-xs text-[#6B7280]">
             Initializing local orchestrator, bundled ADB, and screen streaming

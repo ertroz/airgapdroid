@@ -64,7 +64,7 @@ function renderWaitingPageHtml(): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Network Inspector (mitmweb) — QA Studio</title>
+  <title>Network Inspector (mitmweb) — AirgapDroid</title>
   <style>
     * { box-sizing: border-box; }
     html, body {

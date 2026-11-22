@@ -1,8 +1,8 @@
 [package]
 name = "local-web-qa-studio-desktop"
 version = "1.0.0"
-description = "Self-hosted local Android QA & Developer Studio"
-authors = ["Local Web QA Studio"]
+description = "AirgapDroid — Self-hosted local Android QA & Developer Studio"
+authors = ["AirgapDroid"]
 edition = "2021"
 
 [build-dependencies]

@@ -99,7 +99,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building Local Web QA Studio desktop application");
+        .expect("error while building AirgapDroid desktop application");
 
     app.run(|app_handle, event| {
         if matches!(event, RunEvent::ExitRequested { .. } | RunEvent::Exit) {

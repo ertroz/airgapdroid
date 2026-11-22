@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# Local Web QA Studio — Kiri Runtime Checker & Fork Installer
+# AirgapDroid — Kiri Runtime Checker & Fork Installer
 # 1. Checks if Kiri (or your renamed fork binary) is already installed.
 # 2. If installed, ensures engine/context is configured.
 # 3. If missing, downloads the latest release from KIRI_FORK_REPO on GitHub.
@@ -14,7 +14,7 @@ RELEASES_API="https://api.github.com/repos/${FORK_REPO}/releases/latest"
 RELEASES_WEB="https://github.com/${FORK_REPO}/releases/latest"
 
 echo "============================================================"
-echo " Local Web QA Studio — Kiri Container Runtime Setup"
+echo " AirgapDroid — Kiri Container Runtime Setup"
 echo "   Binary    : ${KIRI_BIN}"
 echo "   Fork Repo : ${FORK_REPO}"
 echo "============================================================"

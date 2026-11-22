@@ -79,7 +79,7 @@ jobs:
           projectPath: packages/desktop
           args: --target ${{ matrix.target }}
           tagName: ${{ github.ref_name }}
-          releaseName: "Local Web QA Studio ${{ github.ref_name }}"
+          releaseName: "AirgapDroid ${{ github.ref_name }}"
           releaseBody: "1-Click Native Desktop Installers for macOS (Universal .dmg), Windows (.msi/.exe), and Linux (.AppImage/.deb)."
           releaseDraft: true
           prerelease: false

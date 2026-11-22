@@ -106,7 +106,7 @@ export function renderScreenViewerHtml(defaultSerial?: string): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Android Live Screen — QA Studio</title>
+  <title>Android Live Screen — AirgapDroid</title>
   <style>
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
     html, body {

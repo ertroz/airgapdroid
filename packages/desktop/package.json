@@ -2,7 +2,7 @@
   "name": "@qa-studio/desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "Tauri v2 Native Desktop Shell for Local Web QA Studio",
+  "description": "Tauri v2 Native Desktop Shell for AirgapDroid",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
