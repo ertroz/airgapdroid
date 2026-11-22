@@ -6,6 +6,7 @@
  * Usage:
  *   node scripts/fetch-platform-tools.js
  *   node scripts/fetch-platform-tools.js --target aarch64-apple-darwin
+ *   node scripts/fetch-platform-tools.js --target universal-apple-darwin
  *   node scripts/fetch-platform-tools.js --all
  */
 
@@ -72,7 +73,49 @@ function extractZip(zipPath, outDir) {
   }
 }
 
+function copyExecutable(src, dest) {
+  fs.copyFileSync(src, dest);
+  fs.chmodSync(dest, 0o755);
+}
+
 async function fetchForTriple(triple) {
+  if (triple === 'universal-apple-darwin') {
+    const universalTargets = [
+      'aarch64-apple-darwin',
+      'x86_64-apple-darwin',
+      'universal-apple-darwin',
+    ];
+    fs.mkdirSync(BINARIES_DIR, { recursive: true });
+
+    const existingUniversal = universalTargets
+      .map((t) => path.join(BINARIES_DIR, `adb-${t}`))
+      .find((p) => fs.existsSync(p));
+
+    if (existingUniversal) {
+      for (const t of universalTargets) {
+        const dest = path.join(BINARIES_DIR, `adb-${t}`);
+        if (!fs.existsSync(dest)) {
+          copyExecutable(existingUniversal, dest);
+          console.log(`[3/3] Installed sidecar: ${dest}`);
+        } else {
+          console.log(`[SKIP] ${path.basename(dest)} already exists.`);
+        }
+      }
+      return;
+    }
+
+    await fetchForTriple('aarch64-apple-darwin');
+    const sourceBin = path.join(BINARIES_DIR, 'adb-aarch64-apple-darwin');
+    for (const t of ['x86_64-apple-darwin', 'universal-apple-darwin']) {
+      const dest = path.join(BINARIES_DIR, `adb-${t}`);
+      if (!fs.existsSync(dest)) {
+        copyExecutable(sourceBin, dest);
+        console.log(`[3/3] Installed sidecar: ${dest}`);
+      }
+    }
+    return;
+  }
+
   const group = getDownloadGroup(triple);
   const url = PLATFORM_URLS[group];
   const isWin = group === 'windows';
@@ -127,6 +170,7 @@ async function main() {
     const triples = [
       'aarch64-apple-darwin',
       'x86_64-apple-darwin',
+      'universal-apple-darwin',
       'x86_64-pc-windows-msvc',
       'x86_64-unknown-linux-gnu',
     ];

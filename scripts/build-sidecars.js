@@ -143,6 +143,33 @@ function buildPublicDefines() {
     .map(([key, val]) => `--define:${key}=${JSON.stringify(val)}`);
 }
 
+function compileSingleSidecar(distBundle, triple) {
+  const isWin = triple.includes('windows');
+  const ext = isWin ? '.exe' : '';
+  const orchestratorOut = path.join(BINARIES_DIR, `qa-orchestrator-${triple}${ext}`);
+  console.log(`[2/2] Compiling standalone sidecar: ${path.basename(orchestratorOut)}...`);
+
+  if (commandExists('bun')) {
+    execFileSync(
+      'bun',
+      ['build', '--compile', `--target=${getBunTarget(triple)}`, distBundle, '--outfile', orchestratorOut],
+      { cwd: ROOT_DIR, stdio: 'inherit' }
+    );
+  } else {
+    runNpx([
+      '--yes',
+      '@yao-pkg/pkg',
+      distBundle,
+      '--targets',
+      getPkgTarget(triple),
+      '--output',
+      orchestratorOut,
+    ]);
+  }
+
+  return orchestratorOut;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const targetIdx = args.indexOf('--target');
@@ -178,29 +205,26 @@ function main() {
   ]);
 
   // 2. Compile standalone qa-orchestrator binary (prefer bun build --compile, fallback to @yao-pkg/pkg)
-  const orchestratorOut = path.join(BINARIES_DIR, `qa-orchestrator-${triple}${ext}`);
-  console.log(`[2/2] Compiling standalone sidecar: ${path.basename(orchestratorOut)}...`);
-
-  if (commandExists('bun')) {
-    execFileSync(
-      'bun',
-      ['build', '--compile', `--target=${getBunTarget(triple)}`, distBundle, '--outfile', orchestratorOut],
-      { cwd: ROOT_DIR, stdio: 'inherit' }
-    );
+  const outputs = [];
+  if (triple === 'universal-apple-darwin') {
+    const arm64Out = compileSingleSidecar(distBundle, 'aarch64-apple-darwin');
+    const x64Out = compileSingleSidecar(distBundle, 'x86_64-apple-darwin');
+    const universalOut = path.join(BINARIES_DIR, 'qa-orchestrator-universal-apple-darwin');
+    console.log(`[2/2] Merging universal macOS sidecar: ${path.basename(universalOut)}...`);
+    execFileSync('lipo', ['-create', arm64Out, x64Out, '-output', universalOut], {
+      cwd: ROOT_DIR,
+      stdio: 'inherit',
+    });
+    fs.chmodSync(universalOut, 0o755);
+    outputs.push(arm64Out, x64Out, universalOut);
   } else {
-    runNpx([
-      '--yes',
-      '@yao-pkg/pkg',
-      distBundle,
-      '--targets',
-      getPkgTarget(triple),
-      '--output',
-      orchestratorOut,
-    ]);
+    outputs.push(compileSingleSidecar(distBundle, triple));
   }
 
   console.log(`\nSidecar binary ready in ${BINARIES_DIR}:`);
-  console.log(`  - ${path.basename(orchestratorOut)}`);
+  for (const out of outputs) {
+    console.log(`  - ${path.basename(out)}`);
+  }
 }
 
 main();
