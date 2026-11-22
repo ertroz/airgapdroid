@@ -53,23 +53,23 @@ export function UploadApkModal({ open, session, onClose, onNotify }: UploadApkMo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-apk-title"
     >
-      <div className="studio-surface w-full max-w-md rounded-xl shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+      <div className="studio-surface w-full max-w-md overflow-hidden rounded-xl shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-white px-5 py-4">
           <div className="flex items-center gap-2">
-            <Upload className="h-4 w-4 text-zinc-300" />
-            <h2 id="upload-apk-title" className="text-sm font-semibold text-zinc-100">
+            <Upload className="h-4 w-4 text-[#4B5563]" />
+            <h2 id="upload-apk-title" className="text-sm font-semibold text-[#111827]">
               Upload & Install Local APK
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+            className="rounded-md p-1 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -91,15 +91,15 @@ export function UploadApkModal({ open, session, onClose, onNotify }: UploadApkMo
             onClick={() => inputRef.current?.click()}
             className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center transition-colors ${
               dragActive
-                ? 'border-zinc-300 bg-white/[0.05]'
-                : 'border-white/15 bg-[#0d0d10] hover:border-white/30'
+                ? 'border-[#E54D2E] bg-orange-50/40'
+                : 'border-[#D1D5DB] bg-[#F9FAFB] hover:border-[#9CA3AF]'
             }`}
           >
-            <FileArchive className="h-7 w-7 text-zinc-400" />
-            <p className="mt-3 text-xs font-medium text-zinc-200">
+            <FileArchive className="h-7 w-7 text-[#6B7280]" />
+            <p className="mt-3 text-xs font-semibold text-[#111827]">
               {selectedFile ? selectedFile.name : 'Drag & drop an .apk file here'}
             </p>
-            <p className="mt-1 text-[11px] text-zinc-500">
+            <p className="mt-1 text-[11px] text-[#6B7280]">
               {selectedFile
                 ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB · Ready to install via adb install -r -d`
                 : 'or click to browse from your workstation (up to 500 MB)'}
@@ -114,14 +114,14 @@ export function UploadApkModal({ open, session, onClose, onNotify }: UploadApkMo
           </div>
 
           {!session.active && (
-            <p className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
               No active device session. Start Docker Mode or Direct ADB Mode before installing.
             </p>
           )}
 
           {installResult && (
-            <div className="mt-3 flex items-center gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-emerald-200 bg-[#EBF9F0] px-3 py-2 text-xs text-[#14532D]">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#1F7A3E]" />
               <span>{installResult}</span>
             </div>
           )}

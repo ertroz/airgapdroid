@@ -150,44 +150,44 @@ export function LicenseModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="license-modal-title"
     >
-      <div className="studio-surface max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl shadow-2xl">
+      <div className="studio-surface max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
-          <div className="flex items-center gap-2">
-            <Crown className={`h-4 w-4 ${isPro ? 'text-amber-400' : 'text-zinc-400'}`} />
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-white px-5 py-4">
+          <div className="flex items-center gap-2.5">
+            <Crown className={`h-4 w-4 ${isPro ? 'text-amber-600' : 'text-[#4B5563]'}`} />
             <div>
-              <h2 id="license-modal-title" className="text-sm font-semibold text-zinc-100">
+              <h2 id="license-modal-title" className="text-sm font-semibold text-[#111827]">
                 Commercial License & Tier Management
               </h2>
-              <p className="text-[11px] text-zinc-400">
-                Encrypted with AES-256-GCM in <code className="font-mono text-zinc-300">~/.qa-studio/license.json</code> bound to this machine.
+              <p className="text-[11px] text-[#6B7280]">
+                Encrypted with AES-256-GCM in <code className="rounded bg-[#F3F4F6] px-1 font-mono text-[#111827]">~/.qa-studio/license.json</code> bound to this machine.
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+            className="rounded-md p-1 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="space-y-4 bg-[#F7F8FA] p-5">
           {/* Offline Grace Expired Warning */}
           {license?.reverifyRequired && (
-            <div className="flex items-start justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200">
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <div>
-                  <div className="font-semibold text-amber-100">Offline Grace Window Expired</div>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-amber-200/85">
+                  <div className="font-semibold text-amber-950">Offline Grace Window Expired</div>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-amber-800">
                     Reconnect to the internet and re-verify your Gumroad license key to restore Pro access.
                   </p>
                 </div>
@@ -196,7 +196,7 @@ export function LicenseModal({
                 type="button"
                 onClick={() => void handleReverify()}
                 disabled={verifying || busy}
-                className="studio-btn shrink-0 border-amber-400/35 bg-amber-500/15 text-[11px] text-amber-100 hover:bg-amber-500/25"
+                className="studio-btn shrink-0 border-amber-300 text-[11px] text-amber-900"
               >
                 <RefreshCw className={`h-3 w-3 ${verifying ? 'animate-spin' : ''}`} />
                 Re-verify
@@ -205,13 +205,13 @@ export function LicenseModal({
           )}
 
           {/* Active Tier Summary */}
-          <div className="rounded-lg border border-white/10 bg-[#141418] px-4 py-3">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-3.5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-zinc-100">
+                  <span className="text-xs font-semibold text-[#111827]">
                     Current Plan:{' '}
-                    <span className={isPro ? 'text-amber-300' : 'text-zinc-300'}>
+                    <span className={isPro ? 'text-amber-700' : 'text-[#4B5563]'}>
                       {license?.isDemoPreview
                         ? 'Pro (Demo Preview)'
                         : isGumroadActive
@@ -222,7 +222,7 @@ export function LicenseModal({
                     </span>
                   </span>
                   {subscriptionLabel && showGumroadDetails && (
-                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-emerald-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#EBF9F0] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1F7A3E]">
                       <ShieldCheck className="h-2.5 w-2.5" />
                       {subscriptionLabel}
                     </span>
@@ -230,23 +230,23 @@ export function LicenseModal({
                 </div>
 
                 {license?.licenseKeyMasked && (
-                  <div className="mt-1 font-mono text-[11px] text-zinc-400">
+                  <div className="mt-1 font-mono text-[11px] text-[#4B5563]">
                     Key: {license.licenseKeyMasked}
                   </div>
                 )}
 
                 {showGumroadDetails && (
-                  <div className="mt-2 space-y-0.5 text-[11px] text-zinc-400">
+                  <div className="mt-2 space-y-0.5 text-[11px] text-[#6B7280]">
                     {license?.buyerEmail && (
                       <div>
-                        Licensed to: <span className="text-zinc-200">{license.buyerEmail}</span>
+                        Licensed to: <span className="font-medium text-[#111827]">{license.buyerEmail}</span>
                         {license.productName ? ` · ${license.productName}` : ''}
                       </div>
                     )}
                     {typeof license?.uses === 'number' && (
                       <div>
                         Seat activations:{' '}
-                        <span className="font-mono text-zinc-200">
+                        <span className="font-mono font-medium tabular-nums text-[#111827]">
                           {license.maxUses
                             ? `${license.uses} / ${license.maxUses} devices`
                             : `${license.uses} device(s)`}
@@ -254,7 +254,7 @@ export function LicenseModal({
                       </div>
                     )}
                     {(lastVerifiedLabel || graceUntilLabel) && (
-                      <div className="text-[10px] text-zinc-500">
+                      <div className="text-[10px] text-[#6B7280]">
                         {lastVerifiedLabel ? `Last verified: ${lastVerifiedLabel}` : ''}
                         {lastVerifiedLabel && graceUntilLabel ? ' · ' : ''}
                         {graceUntilLabel ? `Offline grace until: ${graceUntilLabel}` : ''}
@@ -293,52 +293,52 @@ export function LicenseModal({
 
           {/* Tier Feature Matrix */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-lg border border-white/[0.08] bg-[#101013] p-3.5">
-              <div className="text-xs font-semibold text-zinc-200">Free Tier</div>
-              <ul className="mt-2 space-y-1.5 text-[11px] text-zinc-400">
+            <div className="rounded-lg border border-[#E5E7EB] bg-white p-3.5">
+              <div className="text-xs font-semibold text-[#111827]">Free Tier</div>
+              <ul className="mt-2 space-y-1.5 text-[11px] text-[#4B5563]">
                 <li className="flex items-center gap-1.5">
-                  <Check className="h-3 w-3 text-emerald-400" /> Android 14 (Kiri/Docker) & Direct ADB
+                  <Check className="h-3 w-3 shrink-0 text-[#1F7A3E]" /> Android 14 (Kiri/Docker) & Direct ADB
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="h-3 w-3 text-emerald-400" /> Live HTTPS Inspector & XHR Filters
+                  <Check className="h-3 w-3 shrink-0 text-[#1F7A3E]" /> Live HTTPS Inspector & XHR Filters
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="h-3 w-3 text-emerald-400" /> Dynamic Firebase App Distribution
+                  <Check className="h-3 w-3 shrink-0 text-[#1F7A3E]" /> Dynamic Firebase App Distribution
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="h-3 w-3 text-emerald-400" /> Local APK Install & Live Logcat
+                  <Check className="h-3 w-3 shrink-0 text-[#1F7A3E]" /> Local APK Install & Live Logcat
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3.5">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-amber-200">Pro Tier</span>
-                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber-300">
+                <span className="text-xs font-semibold text-[#111827]">Pro Tier</span>
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber-800">
                   ALL FEATURES
                 </span>
               </div>
-              <ul className="mt-2 space-y-1.5 text-[11px] text-zinc-300">
+              <ul className="mt-2 space-y-1.5 text-[11px] text-[#374151]">
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3 w-3 text-amber-400" /> Multi-OS Switcher (Android 11, 12, 13)
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-amber-600" /> Multi-OS Switcher (Android 11, 12, 13)
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3 w-3 text-amber-400" /> No-Code Visual Recorder & Maestro YAML
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-amber-600" /> No-Code Visual Recorder & Maestro YAML
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3 w-3 text-amber-400" /> Screen Record (.mp4) & Bug Report (.zip)
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-amber-600" /> Screen Record (.mp4) & Bug Report (.zip)
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3 w-3 text-amber-400" /> Auto Failure Screenshots & Error Logs
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-amber-600" /> Auto Failure Screenshots & Error Logs
                 </li>
               </ul>
             </div>
           </div>
 
           {/* License Key Activation Form */}
-          <form onSubmit={(e) => void handleActivateKey(e)} className="space-y-2">
+          <form onSubmit={(e) => void handleActivateKey(e)} className="space-y-2 rounded-lg border border-[#E5E7EB] bg-white p-3.5">
             <div className="flex items-center justify-between gap-2">
-              <label className="block text-xs font-medium text-zinc-300">
+              <label className="block text-xs font-semibold text-[#111827]">
                 {gumroadEnabled ? 'Activate Gumroad License Key' : 'Activate Commercial License Key'}
               </label>
               {!isPro && checkoutUrl && (
@@ -346,7 +346,7 @@ export function LicenseModal({
                   href={checkoutUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-300 transition-colors hover:text-amber-200"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#E54D2E] transition-colors hover:text-[#CE3E21]"
                 >
                   Buy Pro on Gumroad
                   <ExternalLink className="h-3 w-3" />
@@ -375,7 +375,7 @@ export function LicenseModal({
               </button>
             </div>
             {gumroadEnabled && (
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-[#6B7280]">
                 Verified via Gumroad License API v2
                 {license?.maxUses ? ` · Up to ${license.maxUses} device activations per key` : ''}
                 {' · '}Supports offline grace period after activation.
@@ -385,10 +385,10 @@ export function LicenseModal({
 
           {/* Buy Pro CTA Card when Gumroad checkout URL is configured and user is on Free tier */}
           {!isPro && checkoutUrl && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3.5 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#E5E7EB] bg-white px-3.5 py-2.5">
               <div>
-                <div className="text-xs font-medium text-amber-100">Need a Pro License Key?</div>
-                <div className="text-[11px] text-amber-200/75">
+                <div className="text-xs font-semibold text-[#111827]">Need a Pro License Key?</div>
+                <div className="text-[11px] text-[#6B7280]">
                   Instant delivery via Gumroad — paste your key above right after checkout.
                 </div>
               </div>
@@ -396,7 +396,7 @@ export function LicenseModal({
                 href={checkoutUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="studio-btn-primary shrink-0"
+                className="studio-btn-accent shrink-0"
               >
                 Buy Pro
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -406,12 +406,12 @@ export function LicenseModal({
 
           {/* Developer Demo Pro Preview Toggle (hidden automatically in Gumroad production mode) */}
           {demoProAllowed && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-[#0e0e11] px-3.5 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#E5E7EB] bg-white px-3.5 py-2.5">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
+                <Sparkles className="h-4 w-4 shrink-0 text-amber-600" />
                 <div>
-                  <div className="text-xs font-medium text-zinc-200">Demo Pro Preview Mode</div>
-                  <div className="text-[11px] text-zinc-500">
+                  <div className="text-xs font-semibold text-[#111827]">Demo Pro Preview Mode</div>
+                  <div className="text-[11px] text-[#6B7280]">
                     Instantly test all Pro workflows during local development & evaluation.
                   </div>
                 </div>
@@ -429,7 +429,7 @@ export function LicenseModal({
 
           {/* Machine Fingerprint */}
           {license?.machineFingerprint && (
-            <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+            <div className="flex items-center gap-2 px-1 text-[10px] text-[#6B7280]">
               <Fingerprint className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate font-mono">
                 Machine Fingerprint: {license.machineFingerprint}

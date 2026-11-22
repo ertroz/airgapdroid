@@ -83,28 +83,26 @@ export function TopToolbar({
   );
 
   return (
-    <header className="flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] bg-[#101013] px-3 py-1.5">
-      {/* Left: Brand + Runtime Mode Switcher */}
-      <div className="flex items-center gap-2.5">
-        <div className="flex items-center gap-2 pr-1">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-zinc-900 font-mono text-xs font-bold tracking-tight text-zinc-100">
+    <header className="flex min-h-[54px] flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white px-4 py-2">
+      {/* Left: Brand Breadcrumb + Session Target Controls */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Clean Geometric Logo + TestMu-style Breadcrumb */}
+        <div className="flex items-center gap-2.5 pr-1">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-[#111827] bg-[#111827] font-mono text-[11px] font-bold tracking-tight text-white">
             QA
           </div>
-          <div className="hidden sm:block">
-            <h1 className="text-xs font-semibold tracking-tight text-zinc-100">
-              Local Web QA Studio
-            </h1>
-            <p className="text-[10px] leading-none text-zinc-500">
-              Self-Hosted Device & API Workbench
-            </p>
+          <div className="hidden items-center gap-1.5 text-xs sm:flex">
+            <span className="font-semibold text-[#111827]">QA Studio</span>
+            <span className="text-[#9CA3AF]">/</span>
+            <span className="font-medium text-[#6B7280]">App Live Workbench</span>
           </div>
         </div>
 
-        <div className="h-5 w-px bg-white/10" />
+        <div className="hidden h-5 w-px bg-[#E5E7EB] sm:block" />
 
-        {/* Mode Switcher */}
+        {/* Runtime Mode Switcher */}
         <div
-          className="inline-flex rounded-md border border-white/10 bg-[#0a0a0d] p-0.5"
+          className="inline-flex rounded-md border border-[#E5E7EB] bg-[#F3F4F6] p-0.5"
           role="group"
           aria-label="Runtime Mode"
         >
@@ -112,60 +110,58 @@ export function TopToolbar({
             type="button"
             disabled={session.active || sessionBusy}
             onClick={() => onModeChange('docker')}
-            className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed ${
               mode === 'docker'
-                ? 'bg-[#222228] text-zinc-100 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white text-[#111827] shadow-[0_1px_2px_rgba(16,24,40,0.06)]'
+                : 'text-[#6B7280] hover:text-[#111827]'
             }`}
             title="Run lightweight Redroid Android containers locally via Kiri (or Docker fallback)"
           >
-            <Container className="h-3 w-3" />
+            <Container className="h-3.5 w-3.5" />
             {systemReport?.containerRuntime?.engine === 'docker' ? 'Docker Mode' : 'Kiri Mode'}
           </button>
           <button
             type="button"
             disabled={session.active || sessionBusy}
             onClick={() => onModeChange('direct-adb')}
-            className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed ${
               mode === 'direct-adb'
-                ? 'bg-[#222228] text-zinc-100 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white text-[#111827] shadow-[0_1px_2px_rgba(16,24,40,0.06)]'
+                : 'text-[#6B7280] hover:text-[#111827]'
             }`}
             title="Attach to a physical Android device (USB/Wi-Fi) or local emulator via ADB"
           >
-            <Smartphone className="h-3 w-3" />
+            <Smartphone className="h-3.5 w-3.5" />
             Direct ADB
           </button>
         </div>
 
         {/* Target Selector */}
         {mode === 'docker' ? (
-          <div className="flex items-center gap-1.5">
-            <select
-              id="android-version-select"
-              aria-label="Android OS Version"
-              value={androidVersion}
-              disabled={session.active || sessionBusy}
-              onChange={(e) => {
-                const next = e.target.value as AndroidVersion;
-                if (!allowedVersions.includes(next) && !isPro) {
-                  onOpenLicense();
-                  return;
-                }
-                onAndroidVersionChange(next);
-              }}
-              className="studio-select font-medium"
-            >
-              {ANDROID_VERSIONS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                  {item.isProOnly && !isPro ? ' (PRO)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            id="android-version-select"
+            aria-label="Android OS Version"
+            value={androidVersion}
+            disabled={session.active || sessionBusy}
+            onChange={(e) => {
+              const next = e.target.value as AndroidVersion;
+              if (!allowedVersions.includes(next) && !isPro) {
+                onOpenLicense();
+                return;
+              }
+              onAndroidVersionChange(next);
+            }}
+            className="studio-select"
+          >
+            {ANDROID_VERSIONS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+                {item.isProOnly && !isPro ? ' (PRO)' : ''}
+              </option>
+            ))}
+          </select>
         ) : (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <select
               id="adb-device-select"
               aria-label="ADB Device Target"
@@ -192,7 +188,7 @@ export function TopToolbar({
               title="Refresh connected ADB devices"
               aria-label="Refresh ADB devices"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshingDevices ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 text-[#4B5563] ${refreshingDevices ? 'animate-spin' : ''}`} />
             </button>
           </div>
         )}
@@ -204,7 +200,7 @@ export function TopToolbar({
             type="button"
             onClick={onStartSession}
             disabled={sessionBusy}
-            className="studio-btn-primary"
+            className="studio-btn-accent"
           >
             {sessionBusy ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -231,7 +227,7 @@ export function TopToolbar({
         )}
       </div>
 
-      {/* Right: QA Actions + License + System Health */}
+      {/* Right: Studio Tools + Plan + System Health */}
       <div className="flex flex-wrap items-center gap-1.5">
         <button
           id="firebase-builds-btn"
@@ -239,7 +235,7 @@ export function TopToolbar({
           onClick={onOpenFirebase}
           className="studio-btn"
         >
-          <Flame className="h-3.5 w-3.5 text-amber-400" />
+          <Flame className="h-3.5 w-3.5 text-[#4B5563]" />
           <span>Firebase Builds</span>
         </button>
 
@@ -249,10 +245,10 @@ export function TopToolbar({
           onClick={onOpenAutomation}
           className="studio-btn"
         >
-          <Bot className="h-3.5 w-3.5 text-amber-400" />
+          <Bot className="h-3.5 w-3.5 text-[#4B5563]" />
           <span>Auto Test & Report</span>
           {!isPro && (
-            <span className="rounded bg-amber-500/15 px-1 py-0.5 font-mono text-[9px] font-semibold text-amber-300">
+            <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber-800">
               PRO
             </span>
           )}
@@ -264,7 +260,7 @@ export function TopToolbar({
           onClick={onOpenUploadApk}
           className="studio-btn"
         >
-          <Upload className="h-3.5 w-3.5 text-zinc-300" />
+          <Upload className="h-3.5 w-3.5 text-[#4B5563]" />
           <span>Upload APK</span>
         </button>
 
@@ -274,11 +270,11 @@ export function TopToolbar({
           onClick={onOpenClearData}
           className="studio-btn"
         >
-          <Eraser className="h-3.5 w-3.5 text-zinc-300" />
+          <Eraser className="h-3.5 w-3.5 text-[#4B5563]" />
           <span className="hidden md:inline">Clear App Data</span>
         </button>
 
-        <div className="mx-0.5 h-5 w-px bg-white/10" />
+        <div className="mx-1 h-5 w-px bg-[#E5E7EB]" />
 
         {/* License Pill */}
         <button
@@ -287,10 +283,10 @@ export function TopToolbar({
           onClick={onOpenLicense}
           className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
             reverifyRequired
-              ? 'border-rose-500/35 bg-rose-500/10 text-rose-200 hover:bg-rose-500/15'
+              ? 'border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100'
               : isPro
-                ? 'border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15'
-                : 'border-white/10 bg-[#18181c] text-zinc-300 hover:border-white/20 hover:text-white'
+                ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                : 'border-[#D1D5DB] bg-white text-[#374151] hover:border-[#9CA3AF] hover:bg-[#F9FAFB]'
           }`}
           title={
             reverifyRequired
@@ -302,7 +298,7 @@ export function TopToolbar({
         >
           <Crown
             className={`h-3.5 w-3.5 ${
-              reverifyRequired ? 'text-rose-400' : isPro ? 'text-amber-400' : 'text-zinc-500'
+              reverifyRequired ? 'text-rose-600' : isPro ? 'text-amber-600' : 'text-[#6B7280]'
             }`}
           />
           <span>
@@ -324,9 +320,12 @@ export function TopToolbar({
           className="studio-btn"
           title="Open System Check Wizard"
         >
-          <Activity
-            className={`h-3.5 w-3.5 ${systemHealthy ? 'text-emerald-400' : 'text-amber-400'}`}
+          <span
+            className={`h-2 w-2 rounded-full ${
+              systemHealthy ? 'bg-[#1F7A3E]' : 'bg-amber-500'
+            }`}
           />
+          <Activity className="h-3.5 w-3.5 text-[#4B5563]" />
           <span className="hidden lg:inline">System</span>
         </button>
       </div>

@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
  * Compiles packages/orchestrator into a standalone Tauri sidecar binary
- * (`qa-orchestrator-<triple>`) and prepares `ws-scrcpy-<triple>` in
- * packages/desktop/src-tauri/binaries/.
+ * (`qa-orchestrator-<triple>`) in packages/desktop/src-tauri/binaries/.
  */
 
 import { execFileSync, execSync } from 'node:child_process';
@@ -46,6 +45,18 @@ function commandExists(cmd) {
   }
 }
 
+function buildPublicDefines() {
+  const publicMap = [
+    ['__QA_GUMROAD_PRODUCT_ID__', process.env.GUMROAD_PRODUCT_ID?.trim() || ''],
+    ['__QA_GUMROAD_PRODUCT_PERMALINK__', process.env.GUMROAD_PRODUCT_PERMALINK?.trim() || ''],
+    ['__QA_GUMROAD_CHECKOUT_URL__', process.env.GUMROAD_CHECKOUT_URL?.trim() || ''],
+    ['__QA_GOOGLE_OAUTH_CLIENT_ID__', process.env.GOOGLE_OAUTH_CLIENT_ID?.trim() || ''],
+  ];
+  return publicMap
+    .filter(([, val]) => val.length > 0)
+    .map(([key, val]) => `--define:${key}=${JSON.stringify(val)}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
   const targetIdx = args.indexOf('--target');
@@ -55,8 +66,14 @@ function main() {
 
   fs.mkdirSync(BINARIES_DIR, { recursive: true });
 
+  // Clean up obsolete ws-scrcpy sidecar if present (replaced by built-in screen stream on :8000)
+  const obsoleteWsScrcpy = path.join(BINARIES_DIR, `ws-scrcpy-${triple}${ext}`);
+  if (fs.existsSync(obsoleteWsScrcpy)) {
+    fs.unlinkSync(obsoleteWsScrcpy);
+  }
+
   // 1. Build orchestrator TypeScript & bundle to single CommonJS file via esbuild
-  console.log('[1/3] Bundling @qa-studio/orchestrator with esbuild...');
+  console.log('[1/2] Bundling @qa-studio/orchestrator with esbuild...');
   const distBundle = path.join(ORCHESTRATOR_DIR, 'dist', 'sidecar-bundle.cjs');
   execSync('npm run build --workspace=@qa-studio/orchestrator', {
     cwd: ROOT_DIR,
@@ -72,6 +89,7 @@ function main() {
       '--platform=node',
       '--target=node20',
       '--format=cjs',
+      ...buildPublicDefines(),
       `--outfile=${distBundle}`,
     ],
     { cwd: ROOT_DIR, stdio: 'inherit' }
@@ -79,7 +97,7 @@ function main() {
 
   // 2. Compile standalone qa-orchestrator binary (prefer bun build --compile, fallback to @yao-pkg/pkg)
   const orchestratorOut = path.join(BINARIES_DIR, `qa-orchestrator-${triple}${ext}`);
-  console.log(`[2/3] Compiling standalone sidecar: ${path.basename(orchestratorOut)}...`);
+  console.log(`[2/2] Compiling standalone sidecar: ${path.basename(orchestratorOut)}...`);
 
   if (commandExists('bun')) {
     execFileSync(
@@ -103,63 +121,8 @@ function main() {
     );
   }
 
-  // 3. Ensure ws-scrcpy sidecar binary exists (runs container or host ws-scrcpy on port 8000)
-  const wsScrcpyOut = path.join(BINARIES_DIR, `ws-scrcpy-${triple}${ext}`);
-  if (!fs.existsSync(wsScrcpyOut)) {
-    console.log(`[3/3] Creating ws-scrcpy launcher sidecar: ${path.basename(wsScrcpyOut)}...`);
-    const wsLauncherJs = path.join(ORCHESTRATOR_DIR, 'dist', 'ws-scrcpy-sidecar.cjs');
-    fs.writeFileSync(
-      wsLauncherJs,
-      `const { spawn } = require('node:child_process');
-const port = process.env.PORT || '8000';
-const runtime = process.env.CONTAINER_RUNTIME === 'docker' ? 'docker' : 'kiri';
-const child = spawn(
-  runtime,
-  [
-    'run',
-    '--rm',
-    '-p',
-    port + ':8000',
-    '--add-host',
-    'host.docker.internal:host-gateway',
-    '--name',
-    'qa-studio-ws-scrcpy',
-    'emptysuns/scrcpy-web:v0.1',
-    'sh',
-    '-c',
-    'adb start-server && (adb connect host.docker.internal:5555 || true); cd dist && exec node ./index.js',
-  ],
-  { stdio: 'inherit' }
-);
-child.on('exit', (code) => process.exit(code || 0));
-process.on('SIGTERM', () => { child.kill('SIGTERM'); process.exit(0); });
-`
-    );
-    if (commandExists('bun')) {
-      execFileSync('bun', ['build', '--compile', wsLauncherJs, '--outfile', wsScrcpyOut], {
-        cwd: ROOT_DIR,
-        stdio: 'inherit',
-      });
-    } else {
-      execFileSync(
-        'npx',
-        [
-          '--yes',
-          '@yao-pkg/pkg',
-          wsLauncherJs,
-          '--targets',
-          getPkgTarget(triple),
-          '--output',
-          wsScrcpyOut,
-        ],
-        { cwd: ROOT_DIR, stdio: 'inherit' }
-      );
-    }
-  } else {
-    console.log(`[3/3] Found existing ${path.basename(wsScrcpyOut)}.`);
-  }
-
-  console.log('[SUCCESS] Desktop sidecars prepared in', BINARIES_DIR);
+  console.log(`\nSidecar binary ready in ${BINARIES_DIR}:`);
+  console.log(`  - ${path.basename(orchestratorOut)}`);
 }
 
 main();

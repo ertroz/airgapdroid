@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertTriangle,
   Bot,
   CheckCircle2,
   CircleDot,
@@ -13,16 +14,13 @@ import {
   Globe,
   Loader2,
   Play,
-  Radio,
   RefreshCw,
   Save,
-  ShieldCheck,
   Smartphone,
   Sparkles,
   Square,
   Trash2,
   Video,
-  Wifi,
   X,
   XCircle,
 } from 'lucide-react';
@@ -108,7 +106,8 @@ export function WorkspaceSplitView({
 }: WorkspaceSplitViewProps) {
   const isPro = Boolean(license?.isPro);
 
-  const [splitPercent, setSplitPercent] = useState(43);
+  // TestMu AI layout proportion: Left Workbench (~58%) + Right Device Canvas (~42%)
+  const [splitPercent, setSplitPercent] = useState(58);
   const [dragging, setDragging] = useState(false);
   const [scrcpyKey, setScrcpyKey] = useState(0);
   const [mitmKey, setMitmKey] = useState(0);
@@ -116,8 +115,8 @@ export function WorkspaceSplitView({
   const screenOverlayRef = useRef<HTMLDivElement | null>(null);
   const mitmIframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  // Right Panel Multi-Tab Studio
-  const [rightTab, setRightTab] = useState<'automation' | 'network' | 'reports'>('automation');
+  // Left Panel Multi-Tab Studio
+  const [leftTab, setLeftTab] = useState<'automation' | 'network' | 'reports'>('automation');
   const [automationSubTab, setAutomationSubTab] = useState<'nocode' | 'maestro'>('nocode');
   const [mitmFilterPreset, setMitmFilterPreset] = useState<MitmFilterPresetId>('all');
   const [mitmDomainFilter, setMitmDomainFilter] = useState('');
@@ -141,9 +140,9 @@ export function WorkspaceSplitView({
   }, []);
 
   useEffect(() => {
-    if (rightTab !== 'network') return;
+    if (leftTab !== 'network') return;
     pushMitmFilter(effectiveMitmFilter);
-  }, [rightTab, effectiveMitmFilter, pushMitmFilter]);
+  }, [leftTab, effectiveMitmFilter, pushMitmFilter]);
 
   useEffect(() => {
     const onMessage = (ev: MessageEvent) => {
@@ -183,6 +182,17 @@ export function WorkspaceSplitView({
   const [runReports, setRunReports] = useState<FlowRunReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<FlowRunReport | null>(null);
 
+  const liveCounts = useMemo(() => {
+    let passed = 0;
+    let failed = 0;
+    for (const s of recordedSteps) {
+      const st = liveStepStatus[s.id];
+      if (st === 'PASS') passed += 1;
+      else if (st === 'FAIL') failed += 1;
+    }
+    return { passed, failed };
+  }, [recordedSteps, liveStepStatus]);
+
   // Drag resizer
   useEffect(() => {
     if (!dragging) return;
@@ -190,7 +200,7 @@ export function WorkspaceSplitView({
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const rawPct = ((e.clientX - rect.left) / rect.width) * 100;
-      setSplitPercent(Math.max(28, Math.min(72, rawPct)));
+      setSplitPercent(Math.max(35, Math.min(72, rawPct)));
     };
     const handleUp = () => setDragging(false);
 
@@ -287,7 +297,7 @@ export function WorkspaceSplitView({
     try {
       const res = await api.recordTap({ x: deviceX, y: deviceY, deviceSerial: session.deviceSerial ?? undefined });
       setRecordedSteps((prev) => [...prev, res.step]);
-      setRightTab('automation');
+      setLeftTab('automation');
       setAutomationSubTab('nocode');
       onNotify('info', 'Recorded Smart Tap', res.step.label || `(${deviceX}, ${deviceY})`);
     } catch (err) {
@@ -321,7 +331,7 @@ export function WorkspaceSplitView({
       setRecordedSteps((prev) => [...prev, res.step]);
       if (action === 'inputText') setQuickInputText('');
       if (action === 'assertVisible') setQuickAssertText('');
-      setRightTab('automation');
+      setLeftTab('automation');
       setAutomationSubTab('nocode');
     } catch (err) {
       onNotify('error', 'Could not add step', err instanceof Error ? err.message : undefined);
@@ -472,360 +482,81 @@ export function WorkspaceSplitView({
   return (
     <main
       ref={containerRef}
-      className={`relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[#09090b] lg:flex-row ${
+      className={`relative flex min-h-0 flex-1 flex-col gap-3 overflow-hidden bg-[#F7F8FA] px-4 pb-3 lg:flex-row lg:gap-0 ${
         dragging ? 'select-none' : ''
       }`}
     >
-      {/* Left Panel — Interactive Android Screen (ws-scrcpy :8000) + Recorder Toolbar */}
+      {/* Left Panel — Tabbed Workbench Card (TestMu AI Style) */}
       <section
         style={{ flexBasis: `${splitPercent}%` }}
-        className="flex min-h-[340px] min-w-0 flex-1 flex-col border-b border-white/[0.08] bg-[#0b0b0e] lg:min-h-0 lg:flex-none lg:border-b-0"
+        className="flex min-h-[340px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.03)] lg:min-h-0 lg:flex-none"
       >
-        {/* Panel Header */}
-        <div className="flex h-10 shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#101013] px-3">
-          <div className="flex items-center gap-2">
-            <Smartphone className="h-3.5 w-3.5 text-zinc-400" />
-            <span className="text-xs font-medium text-zinc-200">Android Screen</span>
-            {session.active ? (
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                {session.deviceSerial}
-              </span>
-            ) : (
-              <span className="rounded bg-zinc-800/80 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
-                IDLE
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1">
-            {session.active && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setScrcpyKey((k) => k + 1)}
-                  className="rounded p-1 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
-                  title="Reload ws-scrcpy screen stream"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                </button>
-                <a
-                  href={session.wsScrcpyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded p-1 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
-                  title="Open ws-scrcpy in new tab (http://localhost:8000)"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Recorder & Bug Report Toolbar (above device frame) */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-white/[0.06] bg-[#0e0e11] px-3 py-1.5">
-          {!recordingFlow ? (
+        {/* TestMu-style Underlined Tab Bar */}
+        <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-4">
+          <div className="flex h-full items-center gap-5">
             <button
               type="button"
-              onClick={() => {
-                if (!isPro) {
-                  onOpenLicense();
-                  return;
-                }
-                if (!session.active) {
-                  onNotify('warning', 'No Active Session', 'Start a device session first.');
-                  return;
-                }
-                setRecordingFlow(true);
-                setRightTab('automation');
-                setAutomationSubTab('nocode');
-                onNotify('info', 'Visual Recorder Active', 'Click anywhere on the Android screen to record Smart Selector taps.');
-              }}
-              className="studio-btn py-1 text-[11px]"
-            >
-              <CircleDot className="h-3 w-3 text-rose-400" />
-              Record Flow
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setRecordingFlow(false)}
-              className="studio-btn-danger py-1 text-[11px]"
-            >
-              <Square className="h-3 w-3 fill-current" />
-              Stop Record ({recordedSteps.length})
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => void handleToggleScreenRecord()}
-            className={`studio-btn py-1 text-[11px] ${
-              screenRecording ? 'border-rose-500/40 bg-rose-500/15 text-rose-300' : ''
-            }`}
-          >
-            <Video className={`h-3 w-3 ${screenRecording ? 'animate-pulse text-rose-400' : 'text-zinc-400'}`} />
-            {screenRecording ? 'Stop .mp4' : 'Screen Record (.mp4)'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => void handleExportBugReport()}
-            disabled={exportingBug}
-            className="studio-btn ml-auto py-1 text-[11px]"
-          >
-            {exportingBug ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <FileArchive className="h-3 w-3 text-amber-400" />
-            )}
-            Export Bug Report
-          </button>
-        </div>
-
-        {/* Recording Quick-Insert Sub-toolbar */}
-        {recordingFlow && (
-          <div className="flex flex-wrap items-center gap-1.5 border-b border-rose-500/20 bg-rose-500/[0.06] px-3 py-1.5">
-            <input
-              type="text"
-              value={quickInputText}
-              onChange={(e) => setQuickInputText(e.target.value)}
-              placeholder="Text to input..."
-              className="studio-input h-6 w-28 py-0 text-[11px]"
-            />
-            <button
-              type="button"
-              onClick={() => void handleInsertStep('inputText')}
-              className="studio-btn h-6 py-0 text-[10px]"
-            >
-              + Input Text
-            </button>
-
-            <input
-              type="text"
-              value={quickAssertText}
-              onChange={(e) => setQuickAssertText(e.target.value)}
-              placeholder="Assert text..."
-              className="studio-input h-6 w-28 py-0 text-[11px]"
-            />
-            <button
-              type="button"
-              onClick={() => void handleInsertStep('assertVisible')}
-              className="studio-btn h-6 py-0 text-[10px]"
-            >
-              + Assert Visible
-            </button>
-
-            <button
-              type="button"
-              onClick={() => void handleInsertStep('swipe')}
-              className="studio-btn h-6 py-0 text-[10px]"
-            >
-              + Swipe
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleInsertStep('back')}
-              className="studio-btn h-6 py-0 text-[10px]"
-            >
-              + Back
-            </button>
-          </div>
-        )}
-
-        {/* Active Automations Telemetry Strip */}
-        {session.active && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-[#0e0e11] px-3 py-1 font-mono text-[10px]">
-            <span
-              className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${
-                session.metroReversed ? 'bg-sky-500/10 text-sky-300' : 'bg-zinc-800 text-zinc-500'
+              onClick={() => setLeftTab('automation')}
+              className={`relative inline-flex h-full items-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === 'automation'
+                  ? 'font-semibold text-[#111827]'
+                  : 'text-[#6B7280] hover:text-[#111827]'
               }`}
             >
-              <Radio className="h-3 w-3" />
-              Metro :8081 {session.metroReversed ? 'Reversed' : 'Pending'}
-            </span>
-            <span
-              className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${
-                session.proxyConfigured ? 'bg-emerald-500/10 text-emerald-300' : 'bg-zinc-800 text-zinc-500'
-              }`}
-            >
-              <Wifi className="h-3 w-3" />
-              Proxy {session.proxyHost ? `${session.proxyHost}:${session.proxyPort}` : ':8080'}
-            </span>
-            <span
-              className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${
-                session.sslCertInjected ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'
-              }`}
-            >
-              <ShieldCheck className="h-3 w-3" />
-              {session.sslCertInjected ? 'HTTPS CA Injected' : 'CA Manual/Unrooted'}
-            </span>
-          </div>
-        )}
-
-        {/* Viewport / Device Bezel */}
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4">
-          {session.active ? (
-            <div className="relative flex h-full max-h-[760px] w-full max-w-[420px] flex-col rounded-[28px] border border-white/15 bg-[#151519] p-2.5 shadow-[0_24px_64px_rgba(0,0,0,0.75)]">
-              <div className="mb-2 flex items-center justify-center gap-2">
-                <div className="h-1 w-12 rounded-full bg-zinc-700/80" />
-                <div className="h-1.5 w-1.5 rounded-full bg-zinc-700/90" />
-              </div>
-
-              <div className="relative flex-1 overflow-hidden rounded-[20px] border border-white/10 bg-black">
-                <iframe
-                  key={scrcpyKey}
-                  src={session.wsScrcpyUrl}
-                  title="Interactive Android Screen (ws-scrcpy)"
-                  className={`h-full w-full border-0 ${dragging ? 'pointer-events-none' : ''}`}
-                  allow="clipboard-read; clipboard-write"
-                />
-
-                {/* Interactive Record Flow Overlay */}
-                {recordingFlow && (
-                  <div
-                    ref={screenOverlayRef}
-                    onClick={(e) => void handleRecordOverlayClick(e)}
-                    className="absolute inset-0 z-10 cursor-crosshair border-2 border-rose-500/70 bg-rose-500/[0.04]"
-                    title="Click to record Smart Selector tap"
-                  >
-                    <div className="pointer-events-none m-2 inline-flex items-center gap-1.5 rounded bg-rose-600/90 px-2 py-0.5 font-mono text-[10px] font-semibold text-white shadow">
-                      <span className="h-1.5 w-1.5 animate-ping rounded-full bg-white" />
-                      REC · Click screen to capture Smart Selector
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-2 flex items-center justify-between px-3 font-mono text-[10px] text-zinc-500">
-                <span>
-                  {session.mode === 'docker'
-                    ? `Redroid · Android ${session.androidVersion}`
-                    : 'Direct ADB'}
-                </span>
-                <div className="h-1 w-16 rounded-full bg-zinc-700/70" />
-                <span>1080×1920</span>
-              </div>
-            </div>
-          ) : (
-            <div className="w-full max-w-sm rounded-xl border border-white/[0.08] bg-[#111114] p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[#18181c]">
-                <Smartphone className="h-5 w-5 text-zinc-200" />
-              </div>
-              <h2 className="mt-4 text-sm font-semibold text-zinc-100">
-                Ready to Launch Local Android Session
-              </h2>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                {mode === 'docker'
-                  ? `Starts a lightweight Redroid Android ${androidVersion} container (1080×1920 @ 420 DPI) via Kiri/Docker and streams screen & touch via ws-scrcpy.`
-                  : selectedSerial
-                    ? `Attaches directly to ${selectedSerial} via ADB without spinning up a heavy emulator.`
-                    : 'Connect a physical phone (USB/Wi-Fi) or switch to Kiri Mode to boot Redroid.'}
-              </p>
-
-              <div className="mt-4 space-y-2 border-t border-white/[0.07] pt-4 text-[11px] text-zinc-400">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                  <span>
-                    Auto <code className="font-mono text-zinc-200">adb reverse tcp:8081</code> for React Native Metro
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                  <span>
-                    Auto global HTTP proxy (<code className="font-mono text-zinc-200">:8080</code>) & clean reset on Stop
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                  <span>
-                    Auto mitmproxy CA injection (<code className="font-mono text-zinc-200">/system/etc/security/cacerts</code>)
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={onStartSession}
-                disabled={sessionBusy}
-                className="studio-btn-primary mt-5 w-full py-2"
-              >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                {sessionBusy ? 'Booting & Configuring Device...' : 'Start QA Session'}
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Draggable Divider */}
-      <div
-        onMouseDown={() => setDragging(true)}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize workspace panels"
-        className="hidden w-1.5 cursor-col-resize items-center justify-center bg-[#0f0f12] transition-colors hover:bg-zinc-700/60 lg:flex"
-      >
-        <div className="h-8 w-0.5 rounded-full bg-white/15" />
-      </div>
-
-      {/* Right Panel — Multi-Tab QA Studio */}
-      <section className="relative flex min-h-[340px] min-w-0 flex-1 flex-col bg-[#0c0c0f] lg:min-h-0">
-        {/* Multi-Tab Header */}
-        <div className="flex h-10 shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#101013] px-3">
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setRightTab('automation')}
-              className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                rightTab === 'automation'
-                  ? 'bg-[#202026] text-zinc-100'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <Bot className="h-3.5 w-3.5 text-amber-400" />
-              Automation Studio
+              <Bot className="h-3.5 w-3.5" />
+              <span>Automation Studio</span>
               {!isPro && (
-                <span className="rounded bg-amber-500/15 px-1 py-0.5 font-mono text-[9px] font-semibold text-amber-300">
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber-800">
                   PRO
                 </span>
+              )}
+              {leftTab === 'automation' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t bg-[#E54D2E]" />
               )}
             </button>
 
             <button
               type="button"
-              onClick={() => setRightTab('network')}
-              className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                rightTab === 'network'
-                  ? 'bg-[#202026] text-zinc-100'
-                  : 'text-zinc-400 hover:text-zinc-200'
+              onClick={() => setLeftTab('network')}
+              className={`relative inline-flex h-full items-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === 'network'
+                  ? 'font-semibold text-[#111827]'
+                  : 'text-[#6B7280] hover:text-[#111827]'
               }`}
             >
-              <Globe className="h-3.5 w-3.5 text-emerald-400" />
-              Network Inspector
+              <Globe className="h-3.5 w-3.5" />
+              <span>Network Inspector</span>
+              {leftTab === 'network' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t bg-[#E54D2E]" />
+              )}
             </button>
 
             <button
               type="button"
-              onClick={() => setRightTab('reports')}
-              className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                rightTab === 'reports'
-                  ? 'bg-[#202026] text-zinc-100'
-                  : 'text-zinc-400 hover:text-zinc-200'
+              onClick={() => setLeftTab('reports')}
+              className={`relative inline-flex h-full items-center gap-1.5 text-xs font-medium transition-colors ${
+                leftTab === 'reports'
+                  ? 'font-semibold text-[#111827]'
+                  : 'text-[#6B7280] hover:text-[#111827]'
               }`}
             >
-              <FileText className="h-3.5 w-3.5 text-sky-400" />
-              Test Reports ({runReports.length})
+              <FileText className="h-3.5 w-3.5" />
+              <span>Test Reports</span>
+              <span className="rounded-full bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[#4B5563]">
+                {runReports.length}
+              </span>
               {!isPro && (
-                <span className="rounded bg-amber-500/15 px-1 py-0.5 font-mono text-[9px] font-semibold text-amber-300">
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-amber-800">
                   PRO
                 </span>
+              )}
+              {leftTab === 'reports' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t bg-[#E54D2E]" />
               )}
             </button>
           </div>
 
-          {rightTab === 'network' && (
+          {leftTab === 'network' && (
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -838,16 +569,16 @@ export function WorkspaceSplitView({
                     onNotify('error', 'Failed to start mitmweb', err instanceof Error ? err.message : undefined);
                   }
                 }}
-                className="studio-btn py-0.5 text-[10px]"
+                className="studio-btn py-1 text-[11px]"
                 title="Start mitmweb (:8082) container or local mitmproxy binary"
               >
-                <Play className="h-2.5 w-2.5 text-emerald-400" />
+                <Play className="h-3 w-3 text-[#1F7A3E]" />
                 Start mitmweb
               </button>
               <button
                 type="button"
                 onClick={() => setMitmKey((k) => k + 1)}
-                className="rounded p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                className="rounded-md p-1.5 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
                 title="Reload mitmweb"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -856,7 +587,7 @@ export function WorkspaceSplitView({
                 href={session.mitmWebUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                className="rounded-md p-1.5 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
                 title="Open mitmweb in new tab"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -867,12 +598,12 @@ export function WorkspaceSplitView({
 
         {/* Tab Body */}
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          {rightTab === 'network' ? (
+          {leftTab === 'network' ? (
             /* Tab 2: Live Network Inspector (mitmweb :8082 — Free Tier) */
             <div className="flex h-full flex-col">
               {/* Quick Filter Preset Toolbar */}
-              <div className="flex flex-wrap items-center gap-1.5 border-b border-white/[0.06] bg-[#0e0e11] px-3 py-1.5">
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-500">
+              <div className="flex flex-wrap items-center gap-1.5 border-b border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6B7280]">
                   <Filter className="h-3 w-3" />
                   Filter:
                 </span>
@@ -881,20 +612,20 @@ export function WorkspaceSplitView({
                     const active = mitmFilterPreset === preset.id;
                     const activeClass =
                       preset.id === 'errors'
-                        ? 'border-rose-500/40 bg-rose-500/15 text-rose-300'
+                        ? 'border-rose-600 bg-rose-600 text-white'
                         : preset.id === 'all'
-                          ? 'border-white/20 bg-[#202026] text-zinc-100'
-                          : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300';
+                          ? 'border-[#111827] bg-[#111827] text-white'
+                          : 'border-[#1F7A3E] bg-[#EBF9F0] text-[#1F7A3E] font-semibold';
                     return (
                       <button
                         key={preset.id}
                         type="button"
                         onClick={() => setMitmFilterPreset(preset.id)}
                         title={preset.title}
-                        className={`rounded border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                        className={`rounded-md border px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                           active
                             ? activeClass
-                            : 'border-white/[0.08] bg-[#141418] text-zinc-400 hover:border-white/15 hover:text-zinc-200'
+                            : 'border-[#D1D5DB] bg-white text-[#374151] hover:border-[#9CA3AF] hover:bg-[#F3F4F6]'
                         }`}
                       >
                         {preset.label}
@@ -909,12 +640,12 @@ export function WorkspaceSplitView({
                     value={mitmDomainFilter}
                     onChange={(e) => setMitmDomainFilter(e.target.value)}
                     placeholder="Domain (e.g. api.example.com)"
-                    className="studio-input h-6 w-44 py-0 font-mono text-[10px]"
+                    className="studio-input h-7 w-48 py-0 font-mono text-[11px]"
                   />
                   {effectiveMitmFilter && (
                     <>
                       <code
-                        className="hidden max-w-[180px] truncate rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-emerald-300 xl:inline-block"
+                        className="hidden max-w-[180px] truncate rounded border border-[#E5E7EB] bg-white px-2 py-0.5 font-mono text-[10px] text-[#1F7A3E] xl:inline-block"
                         title={`Active mitmproxy filter: ${effectiveMitmFilter}`}
                       >
                         {effectiveMitmFilter}
@@ -925,7 +656,7 @@ export function WorkspaceSplitView({
                           setMitmFilterPreset('all');
                           setMitmDomainFilter('');
                         }}
-                        className="rounded p-0.5 text-zinc-400 hover:bg-white/10 hover:text-zinc-100"
+                        className="rounded-md p-1 text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"
                         title="Clear network filter"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -941,27 +672,27 @@ export function WorkspaceSplitView({
                 src={session.mitmWebUrl}
                 onLoad={() => pushMitmFilter(effectiveMitmFilter)}
                 title="Live Network Inspector (mitmweb)"
-                className={`min-h-0 w-full flex-1 border-0 bg-[#0d0d10] ${dragging ? 'pointer-events-none' : ''}`}
+                className={`min-h-0 w-full flex-1 border-0 bg-white ${dragging ? 'pointer-events-none' : ''}`}
               />
             </div>
           ) : !isPro ? (
-            /* Pro Gate for Tab 1 (Automation Studio) & Tab 3 (Test Reports) */
-            <div className="flex h-full items-center justify-center p-6">
-              <div className="w-full max-w-md rounded-xl border border-white/[0.08] bg-[#121216] p-6 shadow-2xl">
+            /* Pro Gate for Automation Studio & Test Reports */
+            <div className="flex h-full items-center justify-center bg-[#FAFBFC] p-6">
+              <div className="w-full max-w-md rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
-                    <Crown className="h-4 w-4 text-amber-400" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-200 bg-amber-50">
+                    <Crown className="h-4 w-4 text-amber-600" />
                   </div>
-                  <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-amber-800">
                     Pro Feature
                   </span>
                 </div>
 
-                <h3 className="mt-4 text-sm font-semibold text-zinc-100">
+                <h3 className="mt-4 text-sm font-semibold text-[#111827]">
                   No-Code Visual Recorder, Maestro YAML & Bug Reports
                 </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-                  Record Smart Selector flows directly on your Android screen, execute Maestro YAML scripts with live WebSocket progress, record `.mp4` videos, and export Jira/Linear-ready `.zip` bug reports.
+                <p className="mt-1.5 text-xs leading-relaxed text-[#6B7280]">
+                  Record Smart Selector flows directly on your Android screen, execute Maestro YAML scripts with live WebSocket progress, record <code className="font-mono text-[#111827]">.mp4</code> videos, and export Jira/Linear-ready <code className="font-mono text-[#111827]">.zip</code> bug reports.
                 </p>
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -980,7 +711,7 @@ export function WorkspaceSplitView({
                       rel="noreferrer"
                       className="studio-btn flex-1 py-2"
                     >
-                      <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
+                      <ExternalLink className="h-3.5 w-3.5" />
                       Buy Pro on Gumroad
                     </a>
                   )}
@@ -990,68 +721,83 @@ export function WorkspaceSplitView({
                       onClick={onEnableDemoPro}
                       className="studio-btn flex-1 py-2"
                     >
-                      <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                      <Sparkles className="h-3.5 w-3.5 text-amber-600" />
                       Demo Pro Preview
                     </button>
                   )}
                 </div>
               </div>
             </div>
-          ) : rightTab === 'automation' ? (
+          ) : leftTab === 'automation' ? (
             /* Tab 1: Automation Studio */
             <div className="flex h-full flex-col overflow-hidden">
-              {/* Sub-tab Switcher */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#0e0e11] px-4 py-2">
-                <div className="inline-flex rounded-md border border-white/10 bg-[#09090b] p-0.5">
+              {/* Sub-tab Switcher & TestMu-style Status Summary */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2">
+                <div className="inline-flex rounded-md border border-[#E5E7EB] bg-white p-0.5">
                   <button
                     type="button"
                     onClick={() => setAutomationSubTab('nocode')}
-                    className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium ${
+                    className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                       automationSubTab === 'nocode'
-                        ? 'bg-[#202026] text-zinc-100'
-                        : 'text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-[#111827] text-white'
+                        : 'text-[#6B7280] hover:text-[#111827]'
                     }`}
                   >
-                    <CircleDot className="h-3 w-3 text-rose-400" />
+                    <CircleDot className="h-3 w-3" />
                     No-Code Flow Builder ({recordedSteps.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setAutomationSubTab('maestro')}
-                    className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium ${
+                    className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                       automationSubTab === 'maestro'
-                        ? 'bg-[#202026] text-zinc-100'
-                        : 'text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-[#111827] text-white'
+                        : 'text-[#6B7280] hover:text-[#111827]'
                     }`}
                   >
-                    <Code2 className="h-3 w-3 text-sky-400" />
+                    <Code2 className="h-3 w-3" />
                     Maestro YAML Editor
                   </button>
                 </div>
 
-                {savedFlows.length > 0 && automationSubTab === 'nocode' && (
-                  <select
-                    value={selectedFlowId}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      setSelectedFlowId(id);
-                      const found = savedFlows.find((f) => f.id === id);
-                      if (found) {
-                        setFlowName(found.name);
-                        setFlowAppId(found.appId || '');
-                        setRecordedSteps(found.steps);
-                      }
-                    }}
-                    className="studio-select text-[11px]"
-                  >
-                    <option value="">Load Saved Flow...</option>
-                    {savedFlows.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.name} ({f.steps.length} steps)
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <div className="flex items-center gap-3">
+                  {automationSubTab === 'nocode' && (liveCounts.failed > 0 || liveCounts.passed > 0) && (
+                    <div className="flex items-center gap-3 text-[11px] font-medium tabular-nums">
+                      <span className="inline-flex items-center gap-1 text-rose-600">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {liveCounts.failed} Failed
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[#1F7A3E]">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {liveCounts.passed} Passed
+                      </span>
+                    </div>
+                  )}
+
+                  {savedFlows.length > 0 && automationSubTab === 'nocode' && (
+                    <select
+                      value={selectedFlowId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setSelectedFlowId(id);
+                        const found = savedFlows.find((f) => f.id === id);
+                        if (found) {
+                          setFlowName(found.name);
+                          setFlowAppId(found.appId || '');
+                          setRecordedSteps(found.steps);
+                        }
+                      }}
+                      className="studio-select py-1 text-[11px]"
+                    >
+                      <option value="">Load Saved Flow...</option>
+                      {savedFlows.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name} ({f.steps.length} steps)
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
 
               {automationSubTab === 'nocode' ? (
@@ -1073,61 +819,72 @@ export function WorkspaceSplitView({
                     />
                   </div>
 
-                  {/* Recorded Steps List */}
-                  <div className="mt-3 flex-1 space-y-1.5 overflow-y-auto rounded-lg border border-white/[0.08] bg-[#09090b] p-3">
+                  {/* Recorded Steps List — TestMu AI Command Table Pattern */}
+                  <div className="mt-3 flex-1 overflow-y-auto rounded-lg border border-[#E5E7EB] bg-white">
                     {recordedSteps.length === 0 ? (
-                      <div className="flex h-full flex-col items-center justify-center py-10 text-center text-xs text-zinc-500">
-                        <p>No steps recorded yet.</p>
+                      <div className="flex h-full flex-col items-center justify-center py-10 text-center text-xs text-[#6B7280]">
+                        <p className="font-medium text-[#374151]">No steps recorded yet.</p>
                         <p className="mt-1 text-[11px]">
-                          Click <strong className="text-zinc-300">Record Flow</strong> above the Android screen and tap elements to capture Smart Selectors.
+                          Click <strong className="text-[#111827]">Record Flow</strong> on the Android stage and tap elements to capture Smart Selectors.
                         </p>
                       </div>
                     ) : (
-                      recordedSteps.map((step, idx) => {
-                        const status = liveStepStatus[step.id];
-                        return (
-                          <div
-                            key={step.id}
-                            className={`flex items-center justify-between gap-2 rounded border px-3 py-2 text-xs ${
-                              status === 'PASS'
-                                ? 'border-emerald-500/30 bg-emerald-500/10'
-                                : status === 'FAIL'
-                                  ? 'border-rose-500/30 bg-rose-500/10'
-                                  : status === 'RUNNING'
-                                    ? 'border-sky-500/40 bg-sky-500/10'
-                                    : 'border-white/[0.07] bg-[#141418]'
-                            }`}
-                          >
-                            <div className="flex min-w-0 items-center gap-2">
-                              <span className="font-mono text-[10px] text-zinc-500">#{idx + 1}</span>
-                              <span className="truncate font-medium text-zinc-200">
-                                {step.label || step.action}
-                              </span>
-                              {step.selectorType && (
-                                <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
-                                  {step.selectorType}
-                                </span>
-                              )}
-                            </div>
+                      <div className="divide-y divide-[#E5E7EB]">
+                        {recordedSteps.map((step, idx) => {
+                          const status = liveStepStatus[step.id];
+                          return (
+                            <div
+                              key={step.id}
+                              className={`flex items-center justify-between gap-2 px-3.5 py-2.5 text-xs transition-colors ${
+                                status === 'PASS'
+                                  ? 'bg-[#EBF9F0]'
+                                  : status === 'FAIL'
+                                    ? 'bg-rose-50'
+                                    : status === 'RUNNING'
+                                      ? 'bg-sky-50'
+                                      : 'bg-white hover:bg-[#F9FAFB]'
+                              }`}
+                            >
+                              <div className="flex min-w-0 items-center gap-2.5">
+                                {status === 'RUNNING' ? (
+                                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#E54D2E]" />
+                                ) : status === 'PASS' ? (
+                                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
+                                ) : status === 'FAIL' ? (
+                                  <XCircle className="h-3.5 w-3.5 shrink-0 text-rose-600" />
+                                ) : (
+                                  <span className="font-mono text-[10px] font-medium tabular-nums text-[#9CA3AF]">
+                                    #{idx + 1}
+                                  </span>
+                                )}
 
-                            <div className="flex shrink-0 items-center gap-2">
-                              {status === 'RUNNING' && <Loader2 className="h-3.5 w-3.5 animate-spin text-sky-400" />}
-                              {status === 'PASS' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
-                              {status === 'FAIL' && <XCircle className="h-3.5 w-3.5 text-rose-400" />}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setRecordedSteps((prev) => prev.filter((s) => s.id !== step.id))
-                                }
-                                className="text-zinc-500 hover:text-rose-400"
-                                title="Remove step"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                                <span className="truncate font-semibold text-[#111827]">
+                                  {step.label || step.action}
+                                </span>
+
+                                {step.selectorType && (
+                                  <span className="rounded border border-[#E5E7EB] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] text-[#4B5563]">
+                                    {step.selectorType}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex shrink-0 items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setRecordedSteps((prev) => prev.filter((s) => s.id !== step.id))
+                                  }
+                                  className="rounded p-1 text-[#9CA3AF] hover:bg-rose-50 hover:text-rose-600"
+                                  title="Remove step"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
 
@@ -1137,7 +894,7 @@ export function WorkspaceSplitView({
                       type="button"
                       onClick={() => void handleRunFlow()}
                       disabled={runningFlow || recordedSteps.length === 0 || !session.active}
-                      className="studio-btn-primary"
+                      className="studio-btn-accent"
                     >
                       {runningFlow ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1161,7 +918,7 @@ export function WorkspaceSplitView({
                       disabled={recordedSteps.length === 0}
                       className="studio-btn"
                     >
-                      <Code2 className="h-3.5 w-3.5 text-sky-400" />
+                      <Code2 className="h-3.5 w-3.5" />
                       Convert to Maestro YAML
                     </button>
                     {recordedSteps.length > 0 && (
@@ -1171,7 +928,7 @@ export function WorkspaceSplitView({
                           setRecordedSteps([]);
                           setLiveStepStatus({});
                         }}
-                        className="studio-btn ml-auto text-zinc-400"
+                        className="studio-btn ml-auto text-[#6B7280]"
                       >
                         Clear Steps
                       </button>
@@ -1198,7 +955,7 @@ export function WorkspaceSplitView({
                       type="button"
                       onClick={() => void handleRunYaml()}
                       disabled={runningYaml || !yamlText.trim() || !session.active}
-                      className="studio-btn-primary"
+                      className="studio-btn-accent"
                     >
                       {runningYaml ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1213,12 +970,12 @@ export function WorkspaceSplitView({
                     value={yamlText}
                     onChange={(e) => setYamlText(e.target.value)}
                     spellCheck={false}
-                    className="studio-input min-h-[180px] flex-1 resize-none font-mono text-[11px] leading-relaxed"
+                    className="studio-input min-h-[180px] flex-1 resize-none bg-[#F9FAFB] font-mono text-[11px] leading-relaxed text-[#111827]"
                   />
 
-                  <div className="h-32 overflow-y-auto rounded-md border border-white/[0.08] bg-[#09090b] p-2.5 font-mono text-[10px]">
+                  <div className="h-32 overflow-y-auto rounded-md border border-[#E5E7EB] bg-[#F9FAFB] p-2.5 font-mono text-[11px]">
                     {consoleLines.length === 0 ? (
-                      <span className="text-zinc-500">
+                      <span className="text-[#6B7280]">
                         Live Maestro / ADB execution console output will stream here...
                       </span>
                     ) : (
@@ -1227,12 +984,12 @@ export function WorkspaceSplitView({
                           key={idx}
                           className={
                             item.level === 'pass'
-                              ? 'text-emerald-400'
+                              ? 'text-[#1F7A3E]'
                               : item.level === 'fail'
-                                ? 'text-rose-400'
+                                ? 'text-rose-600'
                                 : item.level === 'warn'
-                                  ? 'text-amber-300'
-                                  : 'text-zinc-300'
+                                  ? 'text-amber-700'
+                                  : 'text-[#374151]'
                           }
                         >
                           {item.line}
@@ -1247,7 +1004,7 @@ export function WorkspaceSplitView({
             /* Tab 3: Test Reports */
             <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
               {runReports.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center text-xs text-zinc-500">
+                <div className="flex flex-1 items-center justify-center text-xs text-[#6B7280]">
                   No test runs recorded yet. Run a No-Code Flow or Maestro YAML script to generate reports.
                 </div>
               ) : (
@@ -1258,15 +1015,15 @@ export function WorkspaceSplitView({
                         key={rep.id}
                         type="button"
                         onClick={() => setSelectedReport(rep)}
-                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
                           selectedReport?.id === rep.id
-                            ? 'border-zinc-400/50 bg-[#202026] text-zinc-100'
-                            : 'border-white/10 bg-[#141418] text-zinc-400 hover:text-zinc-200'
+                            ? 'border-[#111827] bg-[#111827] text-white'
+                            : 'border-[#D1D5DB] bg-white text-[#374151] hover:bg-[#F9FAFB]'
                         }`}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            rep.status === 'PASS' ? 'bg-emerald-400' : 'bg-rose-400'
+                            rep.status === 'PASS' ? 'bg-emerald-500' : 'bg-rose-500'
                           }`}
                         />
                         {rep.flowName}
@@ -1275,24 +1032,24 @@ export function WorkspaceSplitView({
                   </div>
 
                   {selectedReport && (
-                    <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#101013] p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3">
                         <div>
                           <div className="flex items-center gap-2">
                             <span
-                              className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                                 selectedReport.status === 'PASS'
-                                  ? 'bg-emerald-500/15 text-emerald-300'
-                                  : 'bg-rose-500/15 text-rose-300'
+                                  ? 'bg-[#1F7A3E] text-white'
+                                  : 'bg-rose-600 text-white'
                               }`}
                             >
                               {selectedReport.status} ({selectedReport.passedSteps}/{selectedReport.totalSteps})
                             </span>
-                            <span className="text-xs font-semibold text-zinc-100">
+                            <span className="text-xs font-semibold text-[#111827]">
                               {selectedReport.flowName}
                             </span>
                           </div>
-                          <p className="mt-1 font-mono text-[10px] text-zinc-500">
+                          <p className="mt-1 font-mono text-[11px] tabular-nums text-[#6B7280]">
                             {selectedReport.deviceSerial} · {(selectedReport.durationMs / 1000).toFixed(2)}s
                           </p>
                         </div>
@@ -1308,30 +1065,39 @@ export function WorkspaceSplitView({
                         </button>
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="divide-y divide-[#E5E7EB]">
                         {selectedReport.stepResults.map((s) => (
                           <div
                             key={`${s.stepId}-${s.index}`}
-                            className="rounded border border-white/[0.06] bg-[#141418] p-2.5 text-xs"
+                            className={`px-4 py-3 text-xs ${
+                              s.status === 'PASS' ? 'bg-[#EBF9F0]/45' : 'bg-rose-50/60'
+                            }`}
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-zinc-200">
-                                {s.index + 1}. {s.label}
-                              </span>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                {s.status === 'PASS' ? (
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-[#1F7A3E]" />
+                                ) : (
+                                  <XCircle className="h-3.5 w-3.5 text-rose-600" />
+                                )}
+                                <span className="font-semibold text-[#111827]">
+                                  {s.index + 1}. {s.label}
+                                </span>
+                              </div>
                               <span
-                                className={`font-mono text-[10px] font-semibold ${
-                                  s.status === 'PASS' ? 'text-emerald-400' : 'text-rose-400'
+                                className={`font-mono text-[11px] font-medium tabular-nums ${
+                                  s.status === 'PASS' ? 'text-[#1F7A3E]' : 'text-rose-600'
                                 }`}
                               >
-                                {s.status} ({s.durationMs}ms)
+                                {s.status} · {s.durationMs}ms
                               </span>
                             </div>
-                            <p className="mt-0.5 font-mono text-[11px] text-zinc-400">{s.detail}</p>
+                            <p className="mt-1 pl-5 font-mono text-[11px] text-[#4B5563]">{s.detail}</p>
                             {s.screenshotFile && (
                               <img
                                 src={api.getScreenshotUrl(s.screenshotFile)}
                                 alt={`Failure screenshot for ${s.label}`}
-                                className="mt-2 max-h-56 rounded border border-white/10"
+                                className="mt-2 ml-5 max-h-56 rounded-md border border-[#E5E7EB]"
                               />
                             )}
                           </div>
@@ -1341,6 +1107,273 @@ export function WorkspaceSplitView({
                   )}
                 </>
               )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Draggable Vertical Divider */}
+      <div
+        onMouseDown={() => setDragging(true)}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize workspace panels"
+        className="hidden w-2.5 cursor-col-resize items-center justify-center transition-colors lg:flex"
+      >
+        <div className="h-10 w-1 rounded-full bg-[#D1D5DB] transition-colors hover:bg-[#9CA3AF]" />
+      </div>
+
+      {/* Right Panel — Interactive Android Screen Canvas (TestMu AI Stage) */}
+      <section className="flex min-h-[340px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.03)] lg:min-h-0">
+        {/* Device Stage Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] bg-[#F9FAFB] px-3.5 py-2">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-3.5 w-3.5 text-[#4B5563]" />
+            <span className="text-xs font-semibold text-[#111827]">Android Screen</span>
+            {session.active ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#EBF9F0] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1F7A3E]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1F7A3E]" />
+                {session.deviceSerial}
+              </span>
+            ) : (
+              <span className="rounded-full border border-[#E5E7EB] bg-white px-2 py-0.5 font-mono text-[10px] font-medium text-[#6B7280]">
+                IDLE
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {!recordingFlow ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isPro) {
+                    onOpenLicense();
+                    return;
+                  }
+                  if (!session.active) {
+                    onNotify('warning', 'No Active Session', 'Start a device session first.');
+                    return;
+                  }
+                  setRecordingFlow(true);
+                  setLeftTab('automation');
+                  setAutomationSubTab('nocode');
+                  onNotify('info', 'Visual Recorder Active', 'Click anywhere on the Android screen to record Smart Selector taps.');
+                }}
+                className="studio-btn py-1 text-[11px]"
+              >
+                <CircleDot className="h-3 w-3 text-rose-600" />
+                Record Flow
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setRecordingFlow(false)}
+                className="studio-btn-danger py-1 text-[11px]"
+              >
+                <Square className="h-3 w-3 fill-current" />
+                Stop Record ({recordedSteps.length})
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => void handleToggleScreenRecord()}
+              className={`studio-btn py-1 text-[11px] ${
+                screenRecording ? 'border-rose-300 bg-rose-50 text-rose-700' : ''
+              }`}
+            >
+              <Video className={`h-3 w-3 ${screenRecording ? 'animate-pulse text-rose-600' : 'text-[#4B5563]'}`} />
+              {screenRecording ? 'Stop .mp4' : 'Screen Record (.mp4)'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleExportBugReport()}
+              disabled={exportingBug}
+              className="studio-btn py-1 text-[11px]"
+            >
+              {exportingBug ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <FileArchive className="h-3 w-3 text-[#4B5563]" />
+              )}
+              Export Bug Report
+            </button>
+          </div>
+        </div>
+
+        {/* Recording Quick-Insert Sub-toolbar */}
+        {recordingFlow && (
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-rose-200 bg-rose-50 px-3.5 py-2">
+            <input
+              type="text"
+              value={quickInputText}
+              onChange={(e) => setQuickInputText(e.target.value)}
+              placeholder="Text to input..."
+              className="studio-input h-7 w-28 py-0 text-[11px]"
+            />
+            <button
+              type="button"
+              onClick={() => void handleInsertStep('inputText')}
+              className="studio-btn h-7 py-0 text-[10px]"
+            >
+              + Input Text
+            </button>
+
+            <input
+              type="text"
+              value={quickAssertText}
+              onChange={(e) => setQuickAssertText(e.target.value)}
+              placeholder="Assert text..."
+              className="studio-input h-7 w-28 py-0 text-[11px]"
+            />
+            <button
+              type="button"
+              onClick={() => void handleInsertStep('assertVisible')}
+              className="studio-btn h-7 py-0 text-[10px]"
+            >
+              + Assert Visible
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleInsertStep('swipe')}
+              className="studio-btn h-7 py-0 text-[10px]"
+            >
+              + Swipe
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleInsertStep('back')}
+              className="studio-btn h-7 py-0 text-[10px]"
+            >
+              + Back
+            </button>
+          </div>
+        )}
+
+        {/* Viewport / Device Bezel */}
+        <div className="studio-stage-grid flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto p-4">
+          {session.active ? (
+            <>
+              <div className="relative flex h-full max-h-[700px] w-full max-w-[380px] flex-col rounded-[30px] border-[3px] border-[#1F2937] bg-[#111827] p-2.5 shadow-[0_24px_48px_-14px_rgba(15,23,42,0.28)]">
+                <div className="mb-2 flex items-center justify-center gap-2">
+                  <div className="h-1 w-12 rounded-full bg-slate-700" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                </div>
+
+                <div className="relative flex-1 overflow-hidden rounded-[20px] border border-slate-800 bg-black">
+                  <iframe
+                    key={scrcpyKey}
+                    src={session.wsScrcpyUrl}
+                    title="Interactive Android Screen (ws-scrcpy)"
+                    className={`h-full w-full border-0 ${dragging ? 'pointer-events-none' : ''}`}
+                    allow="clipboard-read; clipboard-write"
+                  />
+
+                  {/* Interactive Record Flow Overlay */}
+                  {recordingFlow && (
+                    <div
+                      ref={screenOverlayRef}
+                      onClick={(e) => void handleRecordOverlayClick(e)}
+                      className="absolute inset-0 z-10 cursor-crosshair border-2 border-rose-500 bg-rose-500/[0.06]"
+                      title="Click to record Smart Selector tap"
+                    >
+                      <div className="pointer-events-none m-2 inline-flex items-center gap-1.5 rounded-md bg-rose-600 px-2 py-0.5 font-mono text-[10px] font-semibold text-white shadow">
+                        <span className="h-1.5 w-1.5 animate-ping rounded-full bg-white" />
+                        REC · Click screen to capture Smart Selector
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2 flex items-center justify-between px-3 font-mono text-[10px] text-slate-400">
+                  <span>
+                    {session.mode === 'docker'
+                      ? `Redroid · Android ${session.androidVersion}`
+                      : 'Direct ADB'}
+                  </span>
+                  <div className="h-1 w-14 rounded-full bg-slate-700" />
+                  <span className="tabular-nums">1080×1920</span>
+                </div>
+              </div>
+
+              {/* Sleek TestMu-style Control Pill Bar below Phone Frame */}
+              <div className="mt-3 flex w-full max-w-[380px] items-center justify-between gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-[11px] shadow-sm">
+                <div className="flex items-center gap-2 font-mono text-[#374151]">
+                  <span className="h-2 w-2 rounded-full bg-[#1F7A3E]" />
+                  <span>LIVE</span>
+                  <span className="text-[#D1D5DB]">|</span>
+                  <span className="truncate text-[#6B7280]">{session.deviceSerial}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setScrcpyKey((k) => k + 1)}
+                    className="rounded p-1 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
+                    title="Reload Android screen stream"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                  <a
+                    href={session.wsScrcpyUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded p-1 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
+                    title="Open live screen in new tab"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="w-full max-w-sm rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]">
+                <Smartphone className="h-5 w-5 text-[#111827]" />
+              </div>
+              <h2 className="mt-4 text-sm font-semibold text-[#111827]">
+                Ready to Launch Local Android Session
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">
+                {mode === 'docker'
+                  ? `Starts a lightweight Redroid Android ${androidVersion} container (1080×1920 @ 420 DPI) via Kiri/Docker and streams screen & touch live.`
+                  : selectedSerial
+                    ? `Attaches directly to ${selectedSerial} via ADB without spinning up a heavy emulator.`
+                    : 'Connect a physical phone (USB/Wi-Fi) or switch to Kiri Mode to boot Redroid.'}
+              </p>
+
+              <div className="mt-4 space-y-2 border-t border-[#E5E7EB] pt-4 text-[11px] text-[#4B5563]">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
+                  <span>
+                    Auto <code className="rounded bg-[#F3F4F6] px-1 py-0.5 font-mono text-[#111827]">adb reverse tcp:8081</code> for React Native Metro
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
+                  <span>
+                    Auto global HTTP proxy (<code className="rounded bg-[#F3F4F6] px-1 py-0.5 font-mono text-[#111827]">:8080</code>) & clean reset on Stop
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
+                  <span>
+                    Auto mitmproxy CA injection (<code className="rounded bg-[#F3F4F6] px-1 py-0.5 font-mono text-[#111827]">/system/etc/security/cacerts</code>)
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onStartSession}
+                disabled={sessionBusy}
+                className="studio-btn-accent mt-5 w-full py-2"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                {sessionBusy ? 'Booting & Configuring Device...' : 'Start QA Session'}
+              </button>
             </div>
           )}
         </div>

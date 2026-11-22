@@ -72,28 +72,28 @@ function renderWaitingPageHtml(): string {
       padding: 0;
       width: 100%;
       height: 100%;
-      background: #0d0d10;
-      color: #e4e4e7;
+      background: #f9fafb;
+      color: #111827;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .card {
-      max-width: 380px;
-      padding: 24px;
+      max-width: 390px;
+      padding: 24px 28px;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: #141419;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
       text-align: center;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
     }
     .spinner {
       width: 22px;
       height: 22px;
       margin: 0 auto 14px;
-      border: 2px solid rgba(255, 255, 255, 0.12);
-      border-top-color: #34d399;
+      border: 2px solid #e5e7eb;
+      border-top-color: #e54d2e;
       border-radius: 50%;
       animation: spin 0.9s linear infinite;
     }
@@ -102,16 +102,24 @@ function renderWaitingPageHtml(): string {
       margin: 0 0 8px;
       font-size: 14px;
       font-weight: 600;
-      color: #f4f4f5;
+      color: #111827;
     }
     p {
       margin: 0;
       font-size: 12px;
-      line-height: 1.5;
-      color: #a1a1aa;
+      line-height: 1.55;
+      color: #6b7280;
+    }
+    strong {
+      color: #111827;
+      font-weight: 600;
     }
     code {
-      color: #34d399;
+      color: #1f7a3e;
+      background: #ebf9f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
   </style>

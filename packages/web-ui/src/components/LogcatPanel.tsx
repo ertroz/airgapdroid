@@ -131,40 +131,40 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
 
   return (
     <section
-      className={`flex shrink-0 flex-col border-t border-white/[0.08] bg-[#0c0c0f] transition-all ${
-        collapsed ? 'h-9' : 'h-56'
+      className={`flex shrink-0 flex-col border-t border-[#E5E7EB] bg-white transition-all ${
+        collapsed ? 'h-9' : entries.length === 0 ? 'h-24' : 'h-44'
       }`}
       aria-label="Live Error Logcat Terminal"
     >
       {/* Header Bar */}
-      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-white/[0.06] bg-[#101013] px-3">
-        <div className="flex items-center gap-2">
+      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-[#E5E7EB] bg-white px-4">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-200 hover:text-white"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111827] hover:text-[#E54D2E]"
           >
             {collapsed ? (
-              <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
+              <ChevronUp className="h-3.5 w-3.5 text-[#6B7280]" />
             ) : (
-              <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+              <ChevronDown className="h-3.5 w-3.5 text-[#6B7280]" />
             )}
-            <Terminal className="h-3.5 w-3.5 text-zinc-400" />
+            <Terminal className="h-3.5 w-3.5 text-[#4B5563]" />
             <span>Live Error Logcat</span>
           </button>
 
-          <span className="rounded bg-rose-500/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-rose-300">
+          <span className="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-rose-700">
             *:E
           </span>
 
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-zinc-500">
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-[#6B7280]">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
                 streamAttached && sessionActive
-                  ? 'bg-emerald-400'
+                  ? 'bg-[#1F7A3E]'
                   : wsState === 'open'
-                    ? 'bg-zinc-500'
-                    : 'bg-amber-400'
+                    ? 'bg-[#9CA3AF]'
+                    : 'bg-amber-500'
               }`}
             />
             {streamAttached && sessionActive
@@ -175,7 +175,7 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
           </span>
 
           {entries.length > 0 && (
-            <span className="rounded-full bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+            <span className="rounded-full border border-[#E5E7EB] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums text-[#374151]">
               {filteredEntries.length}
             </span>
           )}
@@ -185,13 +185,13 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
         <div className="flex items-center gap-1.5">
           {!collapsed && (
             <div className="relative hidden sm:block">
-              <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500" />
+              <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#9CA3AF]" />
               <input
                 type="text"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Filter tag or stack trace..."
-                className="h-6 w-48 rounded border border-white/10 bg-[#09090b] pl-6 pr-2 font-mono text-[11px] text-zinc-200 placeholder-zinc-500 outline-none focus:border-zinc-400/50"
+                className="h-6 w-52 rounded-md border border-[#D1D5DB] bg-[#F9FAFB] pl-6 pr-2 font-mono text-[11px] text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#111827] focus:bg-white"
               />
             </div>
           )}
@@ -199,10 +199,10 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
           <button
             type="button"
             onClick={() => setAutoScroll((v) => !v)}
-            className={`inline-flex h-6 items-center gap-1 rounded border px-2 text-[11px] font-medium transition-colors ${
+            className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors ${
               autoScroll
-                ? 'border-zinc-500/40 bg-zinc-800 text-zinc-100'
-                : 'border-white/10 bg-transparent text-zinc-500 hover:text-zinc-300'
+                ? 'border-[#111827] bg-[#111827] text-white'
+                : 'border-[#D1D5DB] bg-white text-[#6B7280] hover:text-[#111827]'
             }`}
             title="Toggle auto-scroll to newest logs"
           >
@@ -213,7 +213,7 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
           <button
             type="button"
             onClick={handleClear}
-            className="inline-flex h-6 items-center gap-1 rounded border border-white/10 px-2 text-[11px] font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-[#D1D5DB] bg-white px-2 text-[11px] font-medium text-[#4B5563] transition-colors hover:bg-[#F9FAFB] hover:text-[#111827]"
             title="Clear logcat buffer"
           >
             <Trash2 className="h-3 w-3" />
@@ -223,13 +223,13 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
           <button
             type="button"
             onClick={() => void handleCopyStackTrace()}
-            className="inline-flex h-6 items-center gap-1 rounded border border-white/10 bg-[#18181c] px-2 text-[11px] font-medium text-zinc-200 transition-colors hover:border-white/20 hover:text-white"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-[#D1D5DB] bg-white px-2 text-[11px] font-medium text-[#111827] transition-colors hover:bg-[#F9FAFB]"
             title="Copy filtered error stack trace for QA bug reports"
           >
             {copied ? (
-              <Check className="h-3 w-3 text-emerald-400" />
+              <Check className="h-3 w-3 text-[#1F7A3E]" />
             ) : (
-              <Copy className="h-3 w-3" />
+              <Copy className="h-3 w-3 text-[#4B5563]" />
             )}
             <span>Copy Stack Trace</span>
           </button>
@@ -240,40 +240,40 @@ export function LogcatPanel({ sessionActive, onNotify }: LogcatPanelProps) {
       {!collapsed && (
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-3 py-2 font-mono text-[11px] leading-5"
+          className="flex-1 overflow-y-auto bg-[#F9FAFB] px-4 py-2 font-mono text-[11px] leading-5"
         >
           {filteredEntries.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-zinc-500">
+            <div className="flex h-full items-center justify-center text-[#6B7280]">
               {entries.length === 0
                 ? 'Waiting for Android runtime errors (adb logcat *:E)... Start a session to stream live crashes & exceptions.'
                 : 'No log entries match your current filter.'}
             </div>
           ) : (
-            <div className="space-y-0.5">
+            <div className="divide-y divide-[#F3F4F6]">
               {filteredEntries.map((entry) => {
                 const isSystem = entry.level === 'SYS';
                 const isFatal = entry.level === 'F';
                 return (
                   <div
                     key={entry.id}
-                    className="flex items-start gap-2 rounded px-1.5 py-0.5 hover:bg-white/[0.03]"
+                    className="flex items-start gap-2.5 px-1.5 py-1 hover:bg-white"
                   >
-                    <span className="shrink-0 text-zinc-600">{entry.timestamp}</span>
+                    <span className="shrink-0 tabular-nums text-[#9CA3AF]">{entry.timestamp}</span>
                     <span
-                      className={`mt-0.5 shrink-0 rounded px-1 text-[10px] font-semibold ${
+                      className={`mt-0.5 shrink-0 rounded px-1.5 py-0.2 text-[10px] font-semibold ${
                         isSystem
-                          ? 'bg-sky-500/15 text-sky-300'
+                          ? 'bg-sky-50 text-sky-700 border border-sky-200'
                           : isFatal
-                            ? 'bg-rose-600/30 text-rose-200'
-                            : 'bg-rose-500/15 text-rose-400'
+                            ? 'bg-rose-600 text-white'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}
                     >
                       {entry.level}
                     </span>
-                    <span className="shrink-0 font-semibold text-zinc-300">{entry.tag}:</span>
+                    <span className="shrink-0 font-semibold text-[#111827]">{entry.tag}:</span>
                     <span
                       className={`min-w-0 flex-1 whitespace-pre-wrap break-words ${
-                        isSystem ? 'text-zinc-400' : 'text-rose-200/90'
+                        isSystem ? 'text-[#4B5563]' : 'text-rose-800'
                       }`}
                     >
                       {entry.message}

@@ -54,23 +54,23 @@ export function ClearDataModal({ open, session, onClose, onNotify }: ClearDataMo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="clear-data-title"
     >
-      <div className="studio-surface w-full max-w-md rounded-xl shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+      <div className="studio-surface w-full max-w-md overflow-hidden rounded-xl shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-white px-5 py-4">
           <div className="flex items-center gap-2">
-            <Eraser className="h-4 w-4 text-zinc-300" />
-            <h2 id="clear-data-title" className="text-sm font-semibold text-zinc-100">
+            <Eraser className="h-4 w-4 text-[#4B5563]" />
+            <h2 id="clear-data-title" className="text-sm font-semibold text-[#111827]">
               Clear Android App Data
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+            className="rounded-md p-1 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function ClearDataModal({ open, session, onClose, onNotify }: ClearDataMo
         </div>
 
         <form onSubmit={(e) => void handleClear(e)} className="p-5">
-          <label className="mb-1.5 block text-xs font-medium text-zinc-300">
+          <label className="mb-1.5 block text-xs font-medium text-[#374151]">
             Android Application Package Name
           </label>
           <input
@@ -89,13 +89,13 @@ export function ClearDataModal({ open, session, onClose, onNotify }: ClearDataMo
             className="studio-input font-mono"
             autoFocus
           />
-          <p className="mt-1.5 text-[11px] text-zinc-500">
-            Executes <code className="font-mono text-zinc-300">adb shell pm clear &lt;packageName&gt;</code> to reset storage, auth tokens, and local cache.
+          <p className="mt-1.5 text-[11px] text-[#6B7280]">
+            Executes <code className="rounded bg-[#F3F4F6] px-1 py-0.5 font-mono text-[#111827]">adb shell pm clear &lt;packageName&gt;</code> to reset storage, auth tokens, and local cache.
           </p>
 
           {recentPackages.length > 0 && (
             <div className="mt-3">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280]">
                 Recent Packages
               </span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -104,7 +104,7 @@ export function ClearDataModal({ open, session, onClose, onNotify }: ClearDataMo
                     key={pkg}
                     type="button"
                     onClick={() => setPackageName(pkg)}
-                    className="rounded border border-white/10 bg-[#151519] px-2 py-0.5 font-mono text-[11px] text-zinc-300 transition-colors hover:border-white/25 hover:text-white"
+                    className="rounded-md border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-0.5 font-mono text-[11px] text-[#374151] transition-colors hover:border-[#9CA3AF] hover:bg-white hover:text-[#111827]"
                   >
                     {pkg}
                   </button>

@@ -15,7 +15,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: [config.webUiUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      config.webUiUrl,
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'tauri://localhost',
+      'http://tauri.localhost',
+      'https://tauri.localhost',
+    ],
     credentials: true,
   })
 );
@@ -58,7 +65,7 @@ server.listen(config.port, () => {
   console.log(`   REST API   : http://localhost:${config.port}/api`);
   console.log(`   WS Logcat  : ws://localhost:${config.port}/ws/logcat`);
   console.log(`   WS Screen  : ws://localhost:${config.port}/ws/screen`);
-  console.log(`   ws-scrcpy  : http://localhost:${config.wsScrcpyPort}`);
+  console.log(`   Screen UI  : http://localhost:${config.wsScrcpyPort}`);
   console.log(`   mitmweb    : http://localhost:${config.mitmWebPort} (proxy :${config.mitmProxyPort})`);
   console.log('==============================================================');
   console.log('');

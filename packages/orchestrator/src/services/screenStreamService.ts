@@ -9,9 +9,28 @@ import { config } from '../config.js';
 import { getAdbBinary } from '../utils/adb.js';
 import { runCmd, sleep } from '../utils/shell.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const SCREEN_AGENT_JAR = path.resolve(__dirname, '../../assets/qa-screen-agent.jar');
+const currentDir =
+  typeof __dirname !== 'undefined'
+    ? __dirname
+    : path.dirname(fileURLToPath(import.meta.url));
+
+function resolveScreenAgentJar(): string {
+  const execDir = path.dirname(process.execPath);
+  const candidates = [
+    process.env.QA_STUDIO_SCREEN_AGENT_JAR?.trim(),
+    path.join(execDir, 'assets', 'qa-screen-agent.jar'),
+    path.resolve(execDir, '..', 'Resources', 'assets', 'qa-screen-agent.jar'),
+    path.resolve(currentDir, '../../assets/qa-screen-agent.jar'),
+    path.resolve(process.cwd(), 'packages/orchestrator/assets/qa-screen-agent.jar'),
+  ].filter((p): p is string => Boolean(p));
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return path.resolve(currentDir, '../../assets/qa-screen-agent.jar');
+}
+
+const SCREEN_AGENT_JAR = resolveScreenAgentJar();
 const REMOTE_JAR_PATH = '/data/local/tmp/qa-screen-agent.jar';
 const REMOTE_PID_PATH = '/data/local/tmp/qa-screen-agent.pid';
 const REMOTE_LOG_PATH = '/data/local/tmp/qa-screen-agent.log';

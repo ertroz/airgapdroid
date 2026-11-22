@@ -186,22 +186,22 @@ export function AutomationDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
-      <div className="studio-surface flex h-full w-full max-w-2xl flex-col border-l border-white/10 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-[2px]">
+      <div className="studio-surface flex h-full w-full max-w-2xl flex-col border-l border-[#E5E7EB] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-white px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <Bot className="h-4 w-4 text-amber-400" />
+            <Bot className="h-4 w-4 text-[#4B5563]" />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-zinc-100">
+                <h2 className="text-sm font-semibold text-[#111827]">
                   Automated Testing & QA Reporting
                 </h2>
-                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-300">
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-800">
                   PRO
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-[11px] text-[#6B7280]">
                 Execute automated UI/monkey flows on Android & export Markdown, HTML, or JSON QA reports.
               </p>
             </div>
@@ -209,7 +209,7 @@ export function AutomationDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
+            className="rounded-md p-1.5 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
             aria-label="Close Automation Drawer"
           >
             <X className="h-4 w-4" />
@@ -218,15 +218,15 @@ export function AutomationDrawer({
 
         {/* Pro Gate */}
         {!isPro ? (
-          <div className="flex flex-1 items-center justify-center p-6">
-            <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#121216] p-6 text-center">
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
-                <Crown className="h-5 w-5 text-amber-400" />
+          <div className="flex flex-1 items-center justify-center bg-[#F7F8FA] p-6">
+            <div className="w-full max-w-sm rounded-xl border border-[#E5E7EB] bg-white p-6 text-center shadow-sm">
+              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg border border-amber-200 bg-amber-50">
+                <Crown className="h-5 w-5 text-amber-600" />
               </div>
-              <h3 className="mt-4 text-sm font-semibold text-zinc-100">
+              <h3 className="mt-4 text-sm font-semibold text-[#111827]">
                 Unlock Automated Testing & QA Reporting
               </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+              <p className="mt-1.5 text-xs leading-relaxed text-[#6B7280]">
                 Create repeatable Android UI & monkey stress flows, capture screenshots & Logcat errors automatically, and export shareable QA reports in Markdown, HTML, or JSON.
               </p>
               <div className="mt-5 flex flex-col gap-2">
@@ -248,13 +248,13 @@ export function AutomationDrawer({
                     rel="noreferrer"
                     className="studio-btn w-full py-2"
                   >
-                    <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                     Buy Pro on Gumroad
                   </a>
                 )}
                 {license?.demoProAllowed && (
                   <button type="button" onClick={onEnableDemoPro} className="studio-btn w-full py-2">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                    <Sparkles className="h-3.5 w-3.5 text-amber-600" />
                     Enable Demo Pro Preview
                   </button>
                 )}
@@ -264,31 +264,37 @@ export function AutomationDrawer({
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
             {/* Tabs */}
-            <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#0e0e11] px-5 py-2">
-              <div className="inline-flex rounded-md border border-white/10 bg-[#09090b] p-0.5">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-white px-5">
+              <div className="flex h-10 items-center gap-5">
                 <button
                   type="button"
                   onClick={() => setTab('suites')}
-                  className={`inline-flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${
+                  className={`relative inline-flex h-full items-center gap-1.5 text-xs font-medium transition-colors ${
                     tab === 'suites'
-                      ? 'bg-[#202026] text-zinc-100'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'font-semibold text-[#111827]'
+                      : 'text-[#6B7280] hover:text-[#111827]'
                   }`}
                 >
                   <Bot className="h-3.5 w-3.5" />
                   Test Suites ({suites.length})
+                  {tab === 'suites' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t bg-[#E54D2E]" />
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => setTab('reports')}
-                  className={`inline-flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors ${
+                  className={`relative inline-flex h-full items-center gap-1.5 text-xs font-medium transition-colors ${
                     tab === 'reports'
-                      ? 'bg-[#202026] text-zinc-100'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'font-semibold text-[#111827]'
+                      : 'text-[#6B7280] hover:text-[#111827]'
                   }`}
                 >
                   <FileText className="h-3.5 w-3.5" />
                   QA Reports ({reports.length})
+                  {tab === 'reports' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t bg-[#E54D2E]" />
+                  )}
                 </button>
               </div>
 
@@ -296,7 +302,7 @@ export function AutomationDrawer({
                 type="button"
                 onClick={() => void loadData()}
                 disabled={loading}
-                className="studio-btn"
+                className="studio-btn py-1"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -304,10 +310,9 @@ export function AutomationDrawer({
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 space-y-4 overflow-y-auto p-5">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[#F7F8FA] p-5">
               {tab === 'suites' ? (
                 <>
-                  {/* Suite Selector & New Suite Button */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       {suites.map((suite) => (
@@ -315,8 +320,8 @@ export function AutomationDrawer({
                           key={suite.id}
                           className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${
                             activeSuite?.id === suite.id
-                              ? 'border-zinc-400/50 bg-[#202026] text-zinc-100'
-                              : 'border-white/10 bg-[#141418] text-zinc-400 hover:text-zinc-200'
+                              ? 'border-[#111827] bg-[#111827] text-white'
+                              : 'border-[#D1D5DB] bg-white text-[#374151] hover:text-[#111827]'
                           }`}
                         >
                           <button
@@ -333,7 +338,7 @@ export function AutomationDrawer({
                             <button
                               type="button"
                               onClick={() => void handleDeleteSuite(suite.id)}
-                              className="text-zinc-500 hover:text-rose-400"
+                              className={activeSuite?.id === suite.id ? 'text-slate-300 hover:text-rose-300' : 'text-[#9CA3AF] hover:text-rose-600'}
                               title="Delete suite"
                             >
                               <Trash2 className="h-3 w-3" />
@@ -354,10 +359,10 @@ export function AutomationDrawer({
                   </div>
 
                   {creating ? (
-                    <div className="space-y-3 rounded-lg border border-white/10 bg-[#101013] p-4">
+                    <div className="space-y-3 rounded-lg border border-[#E5E7EB] bg-white p-4">
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <div>
-                          <label className="mb-1 block text-[11px] text-zinc-400">
+                          <label className="mb-1 block text-[11px] font-medium text-[#374151]">
                             Suite Name
                           </label>
                           <input
@@ -369,7 +374,7 @@ export function AutomationDrawer({
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-[11px] text-zinc-400">
+                          <label className="mb-1 block text-[11px] font-medium text-[#374151]">
                             Target Package Name
                           </label>
                           <input
@@ -384,7 +389,7 @@ export function AutomationDrawer({
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-medium text-zinc-300">Steps</span>
+                          <span className="text-[11px] font-semibold text-[#111827]">Steps</span>
                           <button
                             type="button"
                             onClick={() =>
@@ -408,9 +413,9 @@ export function AutomationDrawer({
                         {newSteps.map((step, idx) => (
                           <div
                             key={step.id}
-                            className="flex flex-wrap items-center gap-2 rounded border border-white/[0.08] bg-[#0b0b0e] p-2"
+                            className="flex flex-wrap items-center gap-2 rounded-md border border-[#E5E7EB] bg-[#F9FAFB] p-2"
                           >
-                            <span className="font-mono text-[10px] text-zinc-500">#{idx + 1}</span>
+                            <span className="font-mono text-[10px] tabular-nums text-[#6B7280]">#{idx + 1}</span>
                             <select
                               value={step.action}
                               onChange={(e) => {
@@ -530,7 +535,7 @@ export function AutomationDrawer({
                               onClick={() =>
                                 setNewSteps((prev) => prev.filter((s) => s.id !== step.id))
                               }
-                              className="ml-auto text-zinc-500 hover:text-rose-400"
+                              className="ml-auto text-[#9CA3AF] hover:text-rose-600"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -548,43 +553,43 @@ export function AutomationDrawer({
                       </button>
                     </div>
                   ) : activeSuite ? (
-                    <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#101013] p-4">
+                    <div className="space-y-3 rounded-lg border border-[#E5E7EB] bg-white p-4">
                       <div>
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-semibold text-zinc-100">{activeSuite.name}</h3>
+                          <h3 className="text-xs font-semibold text-[#111827]">{activeSuite.name}</h3>
                           {activeSuite.packageName && (
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-[10px] text-zinc-300">
+                            <span className="rounded border border-[#E5E7EB] bg-[#F9FAFB] px-2 py-0.5 font-mono text-[10px] text-[#374151]">
                               {activeSuite.packageName}
                             </span>
                           )}
                         </div>
                         {activeSuite.description && (
-                          <p className="mt-1 text-[11px] text-zinc-400">{activeSuite.description}</p>
+                          <p className="mt-1 text-[11px] text-[#6B7280]">{activeSuite.description}</p>
                         )}
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="divide-y divide-[#E5E7EB] rounded-lg border border-[#E5E7EB]">
                         {activeSuite.steps.map((s, idx) => (
                           <div
                             key={s.id}
-                            className="flex items-center justify-between rounded border border-white/[0.06] bg-[#141418] px-3 py-2 text-xs"
+                            className="flex items-center justify-between bg-white px-3 py-2 text-xs"
                           >
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-[10px] text-zinc-500">
+                              <span className="font-mono text-[10px] tabular-nums text-[#9CA3AF]">
                                 {idx + 1}.
                               </span>
-                              <span className="font-medium text-zinc-200">
+                              <span className="font-medium text-[#111827]">
                                 {s.label || s.action}
                               </span>
                             </div>
-                            <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+                            <span className="rounded border border-[#E5E7EB] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] text-[#4B5563]">
                               {s.action}
                             </span>
                           </div>
                         ))}
                       </div>
 
-                      <div className="space-y-2 border-t border-white/[0.07] pt-3">
+                      <div className="space-y-2 border-t border-[#E5E7EB] pt-3">
                         <input
                           type="text"
                           value={notes}
@@ -596,7 +601,7 @@ export function AutomationDrawer({
                           type="button"
                           onClick={() => void handleRunSuite()}
                           disabled={running || !session.active}
-                          className="studio-btn-primary w-full py-2"
+                          className="studio-btn-accent w-full py-2"
                         >
                           {running ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -617,7 +622,7 @@ export function AutomationDrawer({
                 /* Tab 2: QA Reports */
                 <div className="space-y-4">
                   {reports.length === 0 ? (
-                    <div className="rounded-lg border border-white/[0.08] bg-[#101013] py-12 text-center text-xs text-zinc-500">
+                    <div className="rounded-lg border border-[#E5E7EB] bg-white py-12 text-center text-xs text-[#6B7280]">
                       No QA reports generated yet. Run a test suite to create your first report.
                     </div>
                   ) : (
@@ -628,13 +633,13 @@ export function AutomationDrawer({
                             key={rep.id}
                             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${
                               selectedReport?.id === rep.id
-                                ? 'border-zinc-400/50 bg-[#202026] text-zinc-100'
-                                : 'border-white/10 bg-[#141418] text-zinc-400 hover:text-zinc-200'
+                                ? 'border-[#111827] bg-[#111827] text-white'
+                                : 'border-[#D1D5DB] bg-white text-[#374151] hover:text-[#111827]'
                             }`}
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
-                                rep.status === 'passed' ? 'bg-emerald-400' : 'bg-rose-400'
+                                rep.status === 'passed' ? 'bg-emerald-500' : 'bg-rose-500'
                               }`}
                             />
                             <button
@@ -647,7 +652,7 @@ export function AutomationDrawer({
                             <button
                               type="button"
                               onClick={() => void handleDeleteReport(rep.id)}
-                              className="text-zinc-500 hover:text-rose-400"
+                              className={selectedReport?.id === rep.id ? 'text-slate-300 hover:text-rose-300' : 'text-[#9CA3AF] hover:text-rose-600'}
                               title="Delete report"
                             >
                               <Trash2 className="h-3 w-3" />
@@ -657,29 +662,29 @@ export function AutomationDrawer({
                       </div>
 
                       {selectedReport && (
-                        <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#101013] p-4">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
+                          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] p-4">
                             <div>
                               <div className="flex items-center gap-2">
                                 {selectedReport.status === 'passed' ? (
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                  <CheckCircle2 className="h-4 w-4 text-[#1F7A3E]" />
                                 ) : (
-                                  <XCircle className="h-4 w-4 text-rose-400" />
+                                  <XCircle className="h-4 w-4 text-rose-600" />
                                 )}
-                                <h3 className="text-xs font-semibold text-zinc-100">
+                                <h3 className="text-xs font-semibold text-[#111827]">
                                   {selectedReport.suiteName}
                                 </h3>
                                 <span
-                                  className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase ${
+                                  className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase ${
                                     selectedReport.status === 'passed'
-                                      ? 'bg-emerald-500/15 text-emerald-300'
-                                      : 'bg-rose-500/15 text-rose-300'
+                                      ? 'bg-[#1F7A3E] text-white'
+                                      : 'bg-rose-600 text-white'
                                   }`}
                                 >
                                   {selectedReport.passedSteps}/{selectedReport.totalSteps} PASSED
                                 </span>
                               </div>
-                              <p className="mt-1 font-mono text-[10px] text-zinc-500">
+                              <p className="mt-1 font-mono text-[10px] tabular-nums text-[#6B7280]">
                                 {selectedReport.deviceSerial} ·{' '}
                                 {(selectedReport.durationMs / 1000).toFixed(2)}s ·{' '}
                                 {new Date(selectedReport.startedAt).toLocaleString()}
@@ -708,26 +713,28 @@ export function AutomationDrawer({
                             </div>
                           </div>
 
-                          <div className="space-y-1.5">
+                          <div className="divide-y divide-[#E5E7EB]">
                             {selectedReport.stepResults.map((step, i) => (
                               <div
                                 key={`${step.stepId}-${i}`}
-                                className="flex items-start justify-between gap-2 rounded border border-white/[0.06] bg-[#141418] px-3 py-2 text-xs"
+                                className={`flex items-start justify-between gap-2 px-4 py-2.5 text-xs ${
+                                  step.status === 'passed' ? 'bg-[#EBF9F0]/45' : 'bg-rose-50/60'
+                                }`}
                               >
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
                                     {step.status === 'passed' ? (
-                                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
                                     ) : (
-                                      <XCircle className="h-3.5 w-3.5 shrink-0 text-rose-400" />
+                                      <XCircle className="h-3.5 w-3.5 shrink-0 text-rose-600" />
                                     )}
-                                    <span className="font-medium text-zinc-200">{step.label}</span>
+                                    <span className="font-semibold text-[#111827]">{step.label}</span>
                                   </div>
-                                  <p className="mt-0.5 pl-5 font-mono text-[11px] text-zinc-400">
+                                  <p className="mt-0.5 pl-5 font-mono text-[11px] text-[#4B5563]">
                                     {step.detail}
                                   </p>
                                 </div>
-                                <span className="shrink-0 font-mono text-[10px] text-zinc-500">
+                                <span className="shrink-0 font-mono text-[10px] tabular-nums text-[#6B7280]">
                                   {step.durationMs}ms
                                 </span>
                               </div>
@@ -735,11 +742,11 @@ export function AutomationDrawer({
                           </div>
 
                           {selectedReport.errorLogs.length > 0 && (
-                            <div className="rounded border border-rose-500/20 bg-rose-500/5 p-3">
-                              <div className="mb-1.5 text-[11px] font-semibold text-rose-300">
+                            <div className="m-4 rounded-md border border-rose-200 bg-rose-50 p-3">
+                              <div className="mb-1.5 text-[11px] font-semibold text-rose-800">
                                 Captured Logcat Errors ({selectedReport.errorLogs.length})
                               </div>
-                              <pre className="max-h-36 overflow-auto font-mono text-[10px] leading-relaxed text-rose-200/85">
+                              <pre className="max-h-36 overflow-auto font-mono text-[10px] leading-relaxed text-rose-900">
                                 {selectedReport.errorLogs.join('\n')}
                               </pre>
                             </div>

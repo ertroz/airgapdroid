@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, Loader2, Smartphone, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2, Radio, ShieldCheck, Smartphone, Wifi, Wrench } from 'lucide-react';
 import { api } from './api/client';
 import { AutomationDrawer } from './components/AutomationDrawer';
 import { BugReportModal } from './components/BugReportModal';
@@ -197,7 +197,6 @@ export function App() {
     setSessionBusy(true);
     try {
       if (mode === 'docker') {
-        // Zero-Terminal Auto-Provisioner: ensure container runtime is running & image is pulled
         if (!systemReport?.dockerAvailable) {
           setProvisioning({
             open: true,
@@ -220,7 +219,6 @@ export function App() {
           }
         }
 
-        // Stream visual image pull progress via SSE
         await new Promise<void>((resolve, reject) => {
           const es = new EventSource(api.getPullProgressUrl(androidVersion));
           es.onmessage = (ev) => {
@@ -358,75 +356,40 @@ export function App() {
 
   if (engineBooting) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center bg-[#09090b] text-zinc-100">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/15 bg-[#141418] font-mono text-base font-bold">
-          QA
+      <div className="flex h-screen flex-col items-center justify-center bg-[#F7F8FA] text-[#111827]">
+        <div className="flex flex-col items-center rounded-xl border border-[#E5E7EB] bg-white px-8 py-7 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#111827] font-mono text-sm font-bold text-white">
+            QA
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#111827]">
+            <Loader2 className="h-4 w-4 animate-spin text-[#E54D2E]" />
+            Starting QA Engine...
+          </div>
+          <p className="mt-1 text-xs text-[#6B7280]">
+            Initializing local orchestrator, bundled ADB, and screen streaming
+          </p>
         </div>
-        <div className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-200">
-          <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
-          Starting QA Engine...
-        </div>
-        <p className="mt-1 text-xs text-zinc-500">
-          Initializing local orchestrator, bundled ADB, and ws-scrcpy sidecars
-        </p>
       </div>
     );
   }
 
+  const activeRuntimeName =
+    session.mode === 'docker' || (!session.active && mode === 'docker')
+      ? systemReport?.containerRuntime?.engine === 'docker'
+        ? 'Docker (Redroid)'
+        : 'Kiri (Redroid)'
+      : 'Direct ADB';
+
+  const activeTargetLabel = session.active
+    ? session.mode === 'docker'
+      ? `Android ${session.androidVersion}`
+      : session.deviceSerial || 'Direct Device'
+    : mode === 'docker'
+      ? `Android ${androidVersion}`
+      : selectedSerial || 'No Device Selected';
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#09090b] text-zinc-100">
-      {/* Smart Onboarding: 1-Click Connect Device Immediately when Direct ADB phone is detected */}
-      {!session.active && readyDirectDevice && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200">
-          <div className="flex items-center gap-2 truncate">
-            <Smartphone className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-            <span className="truncate">
-              Android device detected via ADB:{' '}
-              <strong className="font-mono text-emerald-100">
-                {readyDirectDevice.model || readyDirectDevice.serial}
-              </strong>{' '}
-              — ready for 0-second testing without Docker.
-            </span>
-          </div>
-          <button
-            type="button"
-            disabled={sessionBusy}
-            onClick={() => void handleConnectDirectImmediately(readyDirectDevice.serial)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded bg-emerald-500 px-2.5 py-1 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
-          >
-            Connect Device Immediately
-          </button>
-        </div>
-      )}
-
-      {/* Slim System Check Warning Banner when dependencies need attention */}
-      {hasSystemWarning && systemReport && !readyDirectDevice && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200">
-          <div className="flex items-center gap-2 truncate">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-400" />
-            <span className="truncate">
-              {!systemReport.adbAvailable
-                ? 'ADB binary was not detected on host PATH.'
-                : mode === 'docker' && !systemReport.readyForDocker
-                  ? !systemReport.dockerAvailable
-                    ? systemReport.containerRuntime?.kiriInstalled
-                      ? 'Kiri is installed but not running yet — open System Wizard to configure & start.'
-                      : 'Kiri container runtime not found — install Kiri Official or switch to Direct ADB.'
-                    : 'Android binder kernel support is missing for Redroid containers.'
-                  : 'mitmproxy Android SSL CA cert (<hash>.0) is not generated yet.'}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSystemModalOpen(true)}
-            className="inline-flex shrink-0 items-center gap-1 rounded border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-100 hover:bg-amber-400/25"
-          >
-            <Wrench className="h-3 w-3" />
-            Open System Wizard
-          </button>
-        </div>
-      )}
-
+    <div className="flex h-screen flex-col overflow-hidden bg-[#F7F8FA] text-[#111827]">
       {/* Top Control Toolbar */}
       <TopToolbar
         mode={mode}
@@ -451,6 +414,137 @@ export function App() {
         onOpenUploadApk={() => setUploadApkOpen(true)}
         onOpenClearData={() => setClearDataOpen(true)}
       />
+
+      {/* Smart Onboarding: 1-Click Connect Device Immediately when Direct ADB phone is detected */}
+      {!session.active && readyDirectDevice && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-emerald-200 bg-[#EBF9F0] px-4 py-1.5 text-xs text-[#14532D]">
+          <div className="flex items-center gap-2 truncate">
+            <Smartphone className="h-3.5 w-3.5 shrink-0 text-[#1F7A3E]" />
+            <span className="truncate">
+              Android device detected via ADB:{' '}
+              <strong className="font-mono text-[#111827]">
+                {readyDirectDevice.model || readyDirectDevice.serial}
+              </strong>{' '}
+              — ready for 0-second testing without Docker.
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={sessionBusy}
+            onClick={() => void handleConnectDirectImmediately(readyDirectDevice.serial)}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#1F7A3E] px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-[#166534]"
+          >
+            Connect Device Immediately
+          </button>
+        </div>
+      )}
+
+      {/* Slim System Check Warning Banner when dependencies need attention */}
+      {hasSystemWarning && systemReport && !readyDirectDevice && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-900">
+          <div className="flex items-center gap-2 truncate">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+            <span className="truncate">
+              {!systemReport.adbAvailable
+                ? 'ADB binary was not detected on host PATH.'
+                : mode === 'docker' && !systemReport.readyForDocker
+                  ? !systemReport.dockerAvailable
+                    ? systemReport.containerRuntime?.kiriInstalled
+                      ? 'Kiri is installed but not running yet — open System Wizard to configure & start.'
+                      : 'Kiri container runtime not found — install Kiri Official or switch to Direct ADB.'
+                    : 'Android binder kernel support is missing for Redroid containers.'
+                  : 'mitmproxy Android SSL CA cert (<hash>.0) is not generated yet.'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSystemModalOpen(true)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-300 bg-white px-2.5 py-0.5 text-[11px] font-medium text-amber-900 hover:bg-amber-100/60"
+          >
+            <Wrench className="h-3 w-3" />
+            Open System Wizard
+          </button>
+        </div>
+      )}
+
+      {/* TestMu AI Style Session Breadcrumb & Configuration Metadata Bar */}
+      <div className="shrink-0 bg-[#F7F8FA] px-4 pt-2.5 pb-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            {session.active ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#1F7A3E] px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                <CheckCircle2 className="h-3 w-3" />
+                Active
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D1D5DB] bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#4B5563]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF]" />
+                Standby
+              </span>
+            )}
+            <h1 className="text-sm font-semibold tracking-tight text-[#111827]">
+              {activeTargetLabel}
+            </h1>
+            <span className="hidden text-xs text-[#6B7280] sm:inline">
+              · {activeRuntimeName}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 rounded-lg border border-[#E5E7EB] bg-white px-3.5 py-1.5 text-[11px] shadow-[0_1px_2px_rgba(16,24,40,0.02)]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[#6B7280]">Viewport:</span>
+              <span className="font-mono font-medium tabular-nums text-[#111827]">1080×1920</span>
+            </div>
+            <div className="h-3.5 w-px bg-[#E5E7EB]" />
+            <div className="flex items-center gap-1.5">
+              <Radio className="h-3 w-3 text-[#6B7280]" />
+              <span className="text-[#6B7280]">Metro :8081</span>
+              <span
+                className={`font-medium ${
+                  session.active && session.metroReversed ? 'text-[#1F7A3E]' : 'text-[#6B7280]'
+                }`}
+              >
+                {session.active ? (session.metroReversed ? 'Reversed' : 'Pending') : 'Auto'}
+              </span>
+            </div>
+            <div className="h-3.5 w-px bg-[#E5E7EB]" />
+            <div className="flex items-center gap-1.5">
+              <Wifi className="h-3 w-3 text-[#6B7280]" />
+              <span className="text-[#6B7280]">Proxy</span>
+              <span
+                className={`font-mono font-medium ${
+                  session.active && session.proxyConfigured ? 'text-[#1F7A3E]' : 'text-[#6B7280]'
+                }`}
+              >
+                {session.proxyHost ? `${session.proxyHost}:${session.proxyPort}` : `:${session.proxyPort}`}
+              </span>
+            </div>
+            <div className="hidden h-3.5 w-px bg-[#E5E7EB] md:block" />
+            <div className="hidden items-center gap-1.5 md:flex">
+              <ShieldCheck className="h-3 w-3 text-[#6B7280]" />
+              <span
+                className={`font-medium ${
+                  session.active
+                    ? session.sslCertInjected
+                      ? 'text-[#1F7A3E]'
+                      : 'text-amber-700'
+                    : systemReport?.certReady
+                      ? 'text-[#1F7A3E]'
+                      : 'text-[#6B7280]'
+                }`}
+              >
+                {session.active
+                  ? session.sslCertInjected
+                    ? 'HTTPS CA Injected'
+                    : 'CA Manual/Unrooted'
+                  : systemReport?.certReady
+                    ? 'CA Ready'
+                    : 'CA Pending'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Split-View Workspace */}
       <WorkspaceSplitView

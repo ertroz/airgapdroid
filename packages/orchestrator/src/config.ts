@@ -4,12 +4,33 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Optional compile-time public configuration injected when bundling desktop sidecars
+declare const __QA_GUMROAD_PRODUCT_ID__: string | undefined;
+declare const __QA_GUMROAD_PRODUCT_PERMALINK__: string | undefined;
+declare const __QA_GUMROAD_CHECKOUT_URL__: string | undefined;
+declare const __QA_GOOGLE_OAUTH_CLIENT_ID__: string | undefined;
 
-// Load root .env if present
-const repoRoot = path.resolve(__dirname, '..', '..', '..');
-dotenv.config({ path: path.join(repoRoot, '.env') });
+const currentDir =
+  typeof __dirname !== 'undefined'
+    ? __dirname
+    : path.dirname(fileURLToPath(import.meta.url));
+
+const candidateRepoRoot = path.resolve(currentDir, '..', '..', '..');
+const isMonorepo = fs.existsSync(
+  path.join(candidateRepoRoot, 'packages', 'orchestrator', 'package.json')
+);
+const repoRoot = isMonorepo ? candidateRepoRoot : process.cwd();
+
+const qaStudioHome = path.join(os.homedir(), '.qa-studio');
+
+// Load optional user-level ~/.qa-studio/.env first, then monorepo .env when running from source
+const homeEnvPath = path.join(qaStudioHome, '.env');
+if (fs.existsSync(homeEnvPath)) {
+  dotenv.config({ path: homeEnvPath });
+}
+if (isMonorepo) {
+  dotenv.config({ path: path.join(repoRoot, '.env') });
+}
 
 function parseIntWithDefault(raw: string | undefined, fallback: number, min: number): number {
   if (raw === undefined || raw.trim() === '') return fallback;
@@ -18,12 +39,21 @@ function parseIntWithDefault(raw: string | undefined, fallback: number, min: num
   return parsed;
 }
 
-const qaStudioHome = path.join(os.homedir(), '.qa-studio');
+const bakedGumroadProductId =
+  typeof __QA_GUMROAD_PRODUCT_ID__ !== 'undefined' ? __QA_GUMROAD_PRODUCT_ID__ : '';
+const bakedGumroadProductPermalink =
+  typeof __QA_GUMROAD_PRODUCT_PERMALINK__ !== 'undefined' ? __QA_GUMROAD_PRODUCT_PERMALINK__ : '';
+const bakedGumroadCheckoutUrl =
+  typeof __QA_GUMROAD_CHECKOUT_URL__ !== 'undefined' ? __QA_GUMROAD_CHECKOUT_URL__ : '';
+const bakedGoogleOAuthClientId =
+  typeof __QA_GOOGLE_OAUTH_CLIENT_ID__ !== 'undefined' ? __QA_GOOGLE_OAUTH_CLIENT_ID__ : '';
+
 const certsHomeDir = path.join(qaStudioHome, 'certs');
 const apkTmpDir = '/tmp/qa-apks';
 const mitmWebPort = Number(process.env.MITM_WEB_PORT || 8082);
-const gumroadProductId = process.env.GUMROAD_PRODUCT_ID?.trim() || '';
-const gumroadProductPermalink = process.env.GUMROAD_PRODUCT_PERMALINK?.trim() || '';
+const gumroadProductId = process.env.GUMROAD_PRODUCT_ID?.trim() || bakedGumroadProductId;
+const gumroadProductPermalink =
+  process.env.GUMROAD_PRODUCT_PERMALINK?.trim() || bakedGumroadProductPermalink;
 const gumroadEnabled = Boolean(gumroadProductId || gumroadProductPermalink);
 const allowDemoProRaw = process.env.QA_ALLOW_DEMO_PRO?.trim().toLowerCase();
 const allowDemoPro =
@@ -53,10 +83,10 @@ export const config = {
   mitmWebPassword: process.env.MITM_WEB_PASSWORD?.trim() || 'qa-studio',
   metroPort: 8081,
   proxyHostOverride: process.env.QA_PROXY_HOST?.trim() || '',
-  googleOAuthClientId: process.env.GOOGLE_OAUTH_CLIENT_ID?.trim() || '',
+  googleOAuthClientId: process.env.GOOGLE_OAUTH_CLIENT_ID?.trim() || bakedGoogleOAuthClientId,
   gumroadProductId,
   gumroadProductPermalink,
-  gumroadCheckoutUrl: process.env.GUMROAD_CHECKOUT_URL?.trim() || '',
+  gumroadCheckoutUrl: process.env.GUMROAD_CHECKOUT_URL?.trim() || bakedGumroadCheckoutUrl,
   gumroadMaxUses: parseIntWithDefault(process.env.GUMROAD_MAX_USES, 3, 0),
   gumroadOfflineGraceDays: parseIntWithDefault(process.env.GUMROAD_OFFLINE_GRACE_DAYS, 7, 1),
   gumroadReverifyHours: parseIntWithDefault(process.env.GUMROAD_REVERIFY_HOURS, 24, 1),
@@ -77,8 +107,8 @@ export const config = {
     recordingsDir: path.join(qaStudioHome, 'recordings'),
     reportsDir: path.join(qaStudioHome, 'reports'),
     exportsDir: path.join(qaStudioHome, 'reports', 'exports'),
-    certsRepoDir: path.join(repoRoot, 'certs'),
-    mitmRepoDir: path.join(repoRoot, '.mitmproxy'),
+    certsRepoDir: isMonorepo ? path.join(repoRoot, 'certs') : certsHomeDir,
+    mitmRepoDir: isMonorepo ? path.join(repoRoot, '.mitmproxy') : path.join(qaStudioHome, 'mitmproxy'),
     licenseFile: path.join(qaStudioHome, 'license.json'),
     firebaseProfilesFile: path.join(qaStudioHome, 'firebase-profiles.json'),
     firebaseAuthFile: path.join(qaStudioHome, 'firebase-auth.enc'),

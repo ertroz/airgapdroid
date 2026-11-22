@@ -33,36 +33,40 @@ fn resolve_bundled_adb_path() -> Option<PathBuf> {
     }
 }
 
+fn resolve_bundled_screen_agent_jar(app: &tauri::AppHandle) -> Option<PathBuf> {
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let candidate = resource_dir.join("assets").join("qa-screen-agent.jar");
+        if candidate.exists() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
 fn spawn_sidecars(app: &tauri::AppHandle) {
     let state = app.state::<SidecarState>();
     let mut children = state.children.lock().unwrap_or_else(|e| e.into_inner());
 
     let adb_path = resolve_bundled_adb_path();
+    let screen_agent_jar = resolve_bundled_screen_agent_jar(app);
 
-    // 1. Spawn qa-orchestrator sidecar on port 4000
+    // Spawn qa-orchestrator sidecar on port 4000 (serves REST, Logcat/Automation/Screen WS, and screen viewer on :8000)
     if let Ok(mut cmd) = app.shell().sidecar("qa-orchestrator") {
-        cmd = cmd.env("PORT", "4000").env("WEB_UI_URL", "http://localhost:3000");
+        cmd = cmd
+            .env("PORT", "4000")
+            .env("WEB_UI_URL", "tauri://localhost");
+        if let Some(ref jar) = screen_agent_jar {
+            cmd = cmd.env("QA_STUDIO_SCREEN_AGENT_JAR", jar.to_string_lossy().as_ref());
+        }
         if let Some(ref adb) = adb_path {
             cmd = cmd.env("QA_STUDIO_ADB_PATH", adb.to_string_lossy().as_ref());
             if let Some(parent) = adb.parent() {
                 let current_path = std::env::var("PATH").unwrap_or_default();
                 let sep = if cfg!(windows) { ";" } else { ":" };
-                cmd = cmd.env("PATH", format!("{}{}{}", parent.display(), sep, current_path));
-            }
-        }
-        if let Ok((_rx, child)) = cmd.spawn() {
-            children.push(child);
-        }
-    }
-
-    // 2. Spawn ws-scrcpy sidecar on port 8000 connected to bundled ADB
-    if let Ok(mut cmd) = app.shell().sidecar("ws-scrcpy") {
-        cmd = cmd.env("PORT", "8000");
-        if let Some(ref adb) = adb_path {
-            if let Some(parent) = adb.parent() {
-                let current_path = std::env::var("PATH").unwrap_or_default();
-                let sep = if cfg!(windows) { ";" } else { ":" };
-                cmd = cmd.env("PATH", format!("{}{}{}", parent.display(), sep, current_path));
+                cmd = cmd.env(
+                    "PATH",
+                    format!("{}{}{}", parent.display(), sep, current_path),
+                );
             }
         }
         if let Ok((_rx, child)) = cmd.spawn() {
@@ -87,7 +91,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![get_desktop_info])
         .setup(|app| {
-            // In production bundle, automatically start bundled sidecars.
+            // In production bundle, automatically start bundled qa-orchestrator sidecar.
             // In `npm run dev:desktop`, concurrently already runs orchestrator on :4000.
             if !cfg!(debug_assertions) {
                 spawn_sidecars(app.handle());

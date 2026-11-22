@@ -26,23 +26,23 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
 
         const accent =
           toast.tone === 'success'
-            ? 'text-emerald-400'
+            ? 'text-[#1F7A3E]'
             : toast.tone === 'error'
-              ? 'text-rose-400'
+              ? 'text-rose-600'
               : toast.tone === 'warning'
-                ? 'text-amber-400'
-                : 'text-sky-400';
+                ? 'text-amber-600'
+                : 'text-[#111827]';
 
         return (
           <div
             key={toast.id}
-            className="pointer-events-auto flex items-start gap-2.5 rounded-lg border border-white/10 bg-[#141418]/95 p-3 shadow-2xl backdrop-blur-md"
+            className="pointer-events-auto flex items-start gap-2.5 rounded-lg border border-[#E5E7EB] bg-white p-3 shadow-[0_10px_25px_-5px_rgba(16,24,40,0.12)]"
           >
             <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${accent}`} />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-zinc-100">{toast.title}</p>
+              <p className="text-xs font-semibold text-[#111827]">{toast.title}</p>
               {toast.description && (
-                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-400">
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[#6B7280]">
                   {toast.description}
                 </p>
               )}
@@ -50,7 +50,7 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
             <button
               type="button"
               onClick={() => onDismiss(toast.id)}
-              className="rounded p-0.5 text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
+              className="rounded p-0.5 text-[#9CA3AF] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
               aria-label="Dismiss notification"
             >
               <X className="h-3.5 w-3.5" />

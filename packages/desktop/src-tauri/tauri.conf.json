@@ -16,9 +16,9 @@
         "minWidth": 1100,
         "minHeight": 700,
         "resizable": true,
-        "theme": "Dark",
+        "theme": "Light",
         "titleBarStyle": "Visible",
-        "backgroundColor": "#09090b"
+        "backgroundColor": "#F7F8FA"
       }
     ],
     "security": {
@@ -34,10 +34,12 @@
       "icons/128x128.png",
       "icons/128x128@2x.png"
     ],
+    "resources": {
+      "../../orchestrator/assets/qa-screen-agent.jar": "assets/qa-screen-agent.jar"
+    },
     "externalBin": [
       "binaries/qa-orchestrator",
-      "binaries/adb",
-      "binaries/ws-scrcpy"
+      "binaries/adb"
     ],
     "macOS": {
       "minimumSystemVersion": "13.0"

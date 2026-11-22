@@ -20,22 +20,22 @@ export function ProvisioningModal({ state, onClose }: ProvisioningModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="provisioning-title"
     >
-      <div className="studio-surface w-full max-w-md rounded-xl p-5 shadow-2xl">
+      <div className="studio-surface w-full max-w-md rounded-xl p-5 shadow-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             {state.stage === 'error' ? (
-              <XCircle className="h-4 w-4 text-rose-400" />
+              <XCircle className="h-4 w-4 text-rose-600" />
             ) : state.stage === 'done' ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-[#1F7A3E]" />
             ) : (
-              <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#E54D2E]" />
             )}
-            <h2 id="provisioning-title" className="text-sm font-semibold text-zinc-100">
+            <h2 id="provisioning-title" className="text-sm font-semibold text-[#111827]">
               Launching Virtual Android {state.androidVersion}
             </h2>
           </div>
@@ -43,20 +43,20 @@ export function ProvisioningModal({ state, onClose }: ProvisioningModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+              className="rounded p-1 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
             >
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        <p className="mt-2 text-xs text-zinc-400">{state.message}</p>
+        <p className="mt-2 text-xs text-[#6B7280]">{state.message}</p>
 
         {/* Progress Bar */}
         <div className="mt-4">
           <div className="mb-1.5 flex items-center justify-between font-mono text-[11px]">
-            <span className="inline-flex items-center gap-1.5 text-zinc-300">
-              <Container className="h-3.5 w-3.5 text-zinc-400" />
+            <span className="inline-flex items-center gap-1.5 text-[#374151]">
+              <Container className="h-3.5 w-3.5 text-[#6B7280]" />
               {state.stage === 'starting-runtime'
                 ? 'Starting Container Engine...'
                 : state.stage === 'pulling'
@@ -67,16 +67,16 @@ export function ProvisioningModal({ state, onClose }: ProvisioningModalProps) {
                       ? 'Ready'
                       : 'Failed'}
             </span>
-            <span className="text-zinc-300">{state.percent}%</span>
+            <span className="tabular-nums text-[#111827] font-semibold">{state.percent}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
             <div
               className={`h-full transition-all duration-300 ${
                 state.stage === 'error'
-                  ? 'bg-rose-500'
+                  ? 'bg-rose-600'
                   : state.stage === 'done'
-                    ? 'bg-emerald-500'
-                    : 'bg-sky-400'
+                    ? 'bg-[#1F7A3E]'
+                    : 'bg-[#E54D2E]'
               }`}
               style={{ width: `${Math.max(4, Math.min(100, state.percent))}%` }}
             />
@@ -84,7 +84,7 @@ export function ProvisioningModal({ state, onClose }: ProvisioningModalProps) {
         </div>
 
         {state.error && (
-          <div className="mt-3 rounded-md border border-rose-500/25 bg-rose-500/10 p-2.5 text-[11px] text-rose-200">
+          <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-2.5 text-[11px] text-rose-800">
             {state.error}
           </div>
         )}

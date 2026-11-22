@@ -85,15 +85,19 @@ function clearRuntimeState(): void {
 }
 
 function getLatestMacosBinderKernelUrl(): string {
-  try {
-    const envPath = path.join(config.repoRoot, '.env');
-    if (fs.existsSync(envPath)) {
-      const parsed = dotenv.parse(fs.readFileSync(envPath, 'utf8'));
-      const val = parsed.MACOS_BINDER_KERNEL_URL?.trim();
-      if (val) return val;
+  for (const envPath of [
+    path.join(config.paths.qaStudioHome, '.env'),
+    path.join(config.repoRoot, '.env'),
+  ]) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const parsed = dotenv.parse(fs.readFileSync(envPath, 'utf8'));
+        const val = parsed.MACOS_BINDER_KERNEL_URL?.trim();
+        if (val) return val;
+      }
+    } catch {
+      // Fallback to next candidate
     }
-  } catch {
-    // Fallback to startup config
   }
   return config.macosBinderKernelUrl;
 }

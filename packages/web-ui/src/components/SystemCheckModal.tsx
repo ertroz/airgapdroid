@@ -46,18 +46,18 @@ function CopyCommandBlock({ command }: { command: string }) {
   };
 
   return (
-    <div className="mt-2 flex items-start justify-between gap-2 rounded-md border border-white/10 bg-[#09090b] px-2.5 py-2">
-      <pre className="overflow-x-auto font-mono text-[11px] leading-relaxed text-zinc-300">
+    <div className="mt-2 flex items-start justify-between gap-2 rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-2.5 py-2">
+      <pre className="overflow-x-auto font-mono text-[11px] leading-relaxed text-[#111827]">
         {command}
       </pre>
       <button
         type="button"
         onClick={handleCopy}
-        className="shrink-0 rounded border border-white/10 bg-[#18181c] p-1 text-zinc-400 transition-colors hover:text-zinc-100"
+        className="shrink-0 rounded border border-[#D1D5DB] bg-white p-1 text-[#6B7280] transition-colors hover:text-[#111827]"
         title="Copy command"
       >
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-emerald-400" />
+          <Check className="h-3.5 w-3.5 text-[#1F7A3E]" />
         ) : (
           <Copy className="h-3.5 w-3.5" />
         )}
@@ -95,31 +95,36 @@ export function SystemCheckModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="system-check-title"
     >
-      <div className="studio-surface flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl shadow-2xl">
+      <div className="studio-surface flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
-          <div>
-            <h2 id="system-check-title" className="text-sm font-semibold text-zinc-100">
+        <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white px-5 py-4">
+          <div className="min-w-0">
+            <h2 id="system-check-title" className="text-sm font-semibold text-[#111827]">
               System Check Wizard & Hybrid Runtime Detector
             </h2>
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className="mt-0.5 text-xs text-[#6B7280]">
               Verifies Kiri container runtime (Docker fallback), Android binder kernel, ADB, and mitmproxy CA readiness.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={onRecheck} disabled={loading} className="studio-btn">
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={onRecheck}
+              disabled={loading}
+              className="studio-btn shrink-0 whitespace-nowrap"
+            >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               Re-check
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
+              className="rounded-md p-1.5 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
               aria-label="Close modal"
             >
               <X className="h-4 w-4" />
@@ -128,25 +133,25 @@ export function SystemCheckModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 space-y-3 overflow-y-auto p-5">
+        <div className="flex-1 space-y-3 overflow-y-auto bg-[#F7F8FA] p-5">
           {!report ? (
-            <div className="flex items-center justify-center py-12 text-xs text-zinc-400">
+            <div className="flex items-center justify-center py-12 text-xs text-[#6B7280]">
               Running host diagnostics...
             </div>
           ) : (
             <>
               {/* Recommended mode summary */}
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#151519] px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <Monitor className="h-4 w-4 text-zinc-300" />
+                  <Monitor className="h-4 w-4 text-[#4B5563]" />
                   <div>
-                    <div className="text-xs font-medium text-zinc-200">
-                      Host OS: <span className="font-mono text-zinc-100">{osLabel}</span>{' '}
-                      <span className="text-zinc-500">({report.arch})</span>
+                    <div className="text-xs font-medium text-[#374151]">
+                      Host OS: <span className="font-mono font-semibold text-[#111827]">{osLabel}</span>{' '}
+                      <span className="text-[#6B7280]">({report.arch})</span>
                     </div>
-                    <div className="mt-0.5 text-[11px] text-zinc-400">
+                    <div className="mt-0.5 text-[11px] text-[#6B7280]">
                       Recommended runtime:{' '}
-                      <span className="font-semibold text-emerald-400">
+                      <span className="font-semibold text-[#1F7A3E]">
                         {report.recommendedMode === 'docker'
                           ? `${runtimeLabel} (Redroid)`
                           : 'Direct ADB Mode'}
@@ -167,25 +172,25 @@ export function SystemCheckModal({
               </div>
 
               {/* Check 1: Kiri-First Container Runtime */}
-              <div className="rounded-lg border border-white/[0.08] bg-[#101013] p-3.5">
+              <div className="rounded-lg border border-[#E5E7EB] bg-white p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <Container className="mt-0.5 h-4 w-4 text-zinc-400" />
+                    <Container className="mt-0.5 h-4 w-4 text-[#4B5563]" />
                     <div>
-                      <div className="flex items-center gap-2 text-xs font-medium text-zinc-100">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#111827]">
                         <span>Container Runtime (Kiri-First)</span>
                         {runtime?.engine === 'kiri' && (
-                          <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300">
+                          <span className="rounded bg-[#EBF9F0] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#1F7A3E]">
                             kiri
                           </span>
                         )}
                         {runtime?.engine === 'docker' && (
-                          <span className="rounded bg-sky-500/10 px-1.5 py-0.5 font-mono text-[10px] text-sky-300">
+                          <span className="rounded bg-sky-50 px-1.5 py-0.5 font-mono text-[10px] font-medium text-sky-700">
                             docker fallback
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-[11px] text-zinc-400">
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">
                         {report.dockerAvailable
                           ? runtime?.engine === 'kiri'
                             ? `Kiri runtime active (${runtime.kiriVersion ?? 'ready'}). Lightweight ~15 MB daemon — no Docker Desktop required.`
@@ -197,21 +202,20 @@ export function SystemCheckModal({
                   </div>
 
                   {report.dockerAvailable ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EBF9F0] px-2.5 py-0.5 text-[11px] font-semibold text-[#1F7A3E]">
                       <CheckCircle2 className="h-3 w-3" /> Ready
                     </span>
                   ) : runtime?.needsConfig ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                       <AlertTriangle className="h-3 w-3" /> Needs Config
                     </span>
                   ) : (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                       <AlertTriangle className="h-3 w-3" /> Not Installed
                     </span>
                   )}
                 </div>
 
-                {/* Action controls for Kiri auto-configure or fork install */}
                 {!report.dockerAvailable && runtime && (
                   <div className="mt-3 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
@@ -249,38 +253,38 @@ export function SystemCheckModal({
               </div>
 
               {/* Check 2: Android Binder Kernel Support */}
-              <div className="rounded-lg border border-white/[0.08] bg-[#101013] p-3.5">
+              <div className="rounded-lg border border-[#E5E7EB] bg-white p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <Cpu className="mt-0.5 h-4 w-4 text-zinc-400" />
+                    <Cpu className="mt-0.5 h-4 w-4 text-[#4B5563]" />
                     <div>
-                      <div className="text-xs font-medium text-zinc-100">
+                      <div className="text-xs font-semibold text-[#111827]">
                         Android Kernel Support (binder / binderfs)
                         {report.kernelModulesReady.checkedInGuestVm && (
-                          <span className="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+                          <span className="ml-2 rounded border border-[#E5E7EB] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#4B5563]">
                             Kiri Guest Kernel
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-[11px] text-zinc-400">
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">
                         {report.kernelModulesReady.message}
                       </p>
                       {report.kernelModulesReady.applicable && (
                         <div className="mt-2 flex items-center gap-2 font-mono text-[11px]">
                           <span
-                            className={`rounded px-1.5 py-0.5 ${
+                            className={`rounded px-1.5 py-0.5 font-medium ${
                               report.kernelModulesReady.binder
-                                ? 'bg-emerald-500/10 text-emerald-400'
-                                : 'bg-rose-500/10 text-rose-400'
+                                ? 'bg-[#EBF9F0] text-[#1F7A3E]'
+                                : 'bg-rose-50 text-rose-700'
                             }`}
                           >
                             binder: {report.kernelModulesReady.binder ? 'OK' : 'MISSING'}
                           </span>
                           <span
-                            className={`rounded px-1.5 py-0.5 ${
+                            className={`rounded px-1.5 py-0.5 font-medium ${
                               report.kernelModulesReady.ashmem
-                                ? 'bg-emerald-500/10 text-emerald-400'
-                                : 'bg-zinc-800 text-zinc-400'
+                                ? 'bg-[#EBF9F0] text-[#1F7A3E]'
+                                : 'bg-[#F3F4F6] text-[#4B5563]'
                             }`}
                           >
                             ashmem: {report.kernelModulesReady.ashmem ? 'OK' : 'MEMFD (OK 11+)'}
@@ -290,15 +294,15 @@ export function SystemCheckModal({
                     </div>
                   </div>
                   {!report.kernelModulesReady.applicable ? (
-                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
+                    <span className="rounded-full bg-[#F3F4F6] px-2.5 py-0.5 text-[11px] font-medium text-[#6B7280]">
                       Pending
                     </span>
                   ) : report.kernelModulesReady.ready ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EBF9F0] px-2.5 py-0.5 text-[11px] font-semibold text-[#1F7A3E]">
                       <CheckCircle2 className="h-3 w-3" /> Active
                     </span>
                   ) : (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700">
                       <XCircle className="h-3 w-3" /> Action Needed
                     </span>
                   )}
@@ -332,15 +336,15 @@ export function SystemCheckModal({
               </div>
 
               {/* Check 3: ADB & Connected Devices */}
-              <div className="rounded-lg border border-white/[0.08] bg-[#101013] p-3.5">
+              <div className="rounded-lg border border-[#E5E7EB] bg-white p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <Smartphone className="mt-0.5 h-4 w-4 text-zinc-400" />
+                    <Smartphone className="mt-0.5 h-4 w-4 text-[#4B5563]" />
                     <div>
-                      <div className="text-xs font-medium text-zinc-100">
+                      <div className="text-xs font-semibold text-[#111827]">
                         Android Debug Bridge (ADB)
                       </div>
-                      <p className="mt-0.5 text-[11px] text-zinc-400">
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">
                         {report.adbAvailable
                           ? `${report.adbVersion ?? 'ADB ready'} — ${report.connectedDevices.length} device(s) detected.`
                           : report.adbError || 'ADB is not installed on host PATH.'}
@@ -350,11 +354,11 @@ export function SystemCheckModal({
                           {report.connectedDevices.map((d) => (
                             <span
                               key={d.serial}
-                              className="inline-flex items-center gap-1.5 rounded border border-white/10 bg-[#18181c] px-2 py-0.5 font-mono text-[11px] text-zinc-200"
+                              className="inline-flex items-center gap-1.5 rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-2 py-0.5 font-mono text-[11px] text-[#111827]"
                             >
                               <span
                                 className={`h-1.5 w-1.5 rounded-full ${
-                                  d.state === 'device' ? 'bg-emerald-400' : 'bg-amber-400'
+                                  d.state === 'device' ? 'bg-[#1F7A3E]' : 'bg-amber-500'
                                 }`}
                               />
                               {d.serial}
@@ -366,11 +370,11 @@ export function SystemCheckModal({
                     </div>
                   </div>
                   {report.adbAvailable ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EBF9F0] px-2.5 py-0.5 text-[11px] font-semibold text-[#1F7A3E]">
                       <CheckCircle2 className="h-3 w-3" /> Ready
                     </span>
                   ) : (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700">
                       <XCircle className="h-3 w-3" /> Missing
                     </span>
                   )}
@@ -381,15 +385,15 @@ export function SystemCheckModal({
               </div>
 
               {/* Check 4: mitmproxy SSL System Certificate */}
-              <div className="rounded-lg border border-white/[0.08] bg-[#101013] p-3.5">
+              <div className="rounded-lg border border-[#E5E7EB] bg-white p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <ShieldCheck className="mt-0.5 h-4 w-4 text-zinc-400" />
+                    <ShieldCheck className="mt-0.5 h-4 w-4 text-[#4B5563]" />
                     <div>
-                      <div className="text-xs font-medium text-zinc-100">
+                      <div className="text-xs font-semibold text-[#111827]">
                         HTTPS System CA Certificate (mitmproxy)
                       </div>
-                      <p className="mt-0.5 text-[11px] text-zinc-400">
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">
                         {report.certReady
                           ? `Android system cert ${report.certFileName} is ready for automatic injection into /system/etc/security/cacerts/.`
                           : 'Generate and convert the mitmproxy CA certificate to <subject_hash_old>.0 for automatic HTTPS decryption.'}
@@ -397,11 +401,11 @@ export function SystemCheckModal({
                     </div>
                   </div>
                   {report.certReady ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EBF9F0] px-2.5 py-0.5 text-[11px] font-semibold text-[#1F7A3E]">
                       <CheckCircle2 className="h-3 w-3" /> Ready
                     </span>
                   ) : (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                       <AlertTriangle className="h-3 w-3" /> Not Generated
                     </span>
                   )}
@@ -413,10 +417,10 @@ export function SystemCheckModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-white/[0.08] bg-[#0e0e11] px-5 py-3">
-          <span className="text-[11px] text-zinc-500">
+        <div className="flex items-center justify-between border-t border-[#E5E7EB] bg-white px-5 py-3">
+          <span className="text-[11px] text-[#6B7280]">
             Start ws-scrcpy & mitmweb anytime with{' '}
-            <code className="font-mono text-zinc-300">npm run infra:up</code> (auto-uses Kiri)
+            <code className="rounded bg-[#F3F4F6] px-1 py-0.5 font-mono text-[#111827]">npm run infra:up</code> (auto-uses Kiri)
           </span>
           <button type="button" onClick={onClose} className="studio-btn">
             Continue to Studio
