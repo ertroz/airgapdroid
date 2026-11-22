@@ -9,6 +9,9 @@ build/
 packages/*/dist/
 packages/*/build/
 
+# Cloudflare Wrangler local state
+.wrangler/
+
 # Environment & local secrets
 .env
 .env.local

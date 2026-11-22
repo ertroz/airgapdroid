@@ -15,6 +15,8 @@
     "build": "npm run build --workspace=@qa-studio/orchestrator && npm run build --workspace=@qa-studio/web-ui",
     "build:landing": "npm run build --workspace=@qa-studio/landing",
     "preview:landing": "npm run preview --workspace=@qa-studio/landing",
+    "deploy:landing": "npm run build:landing && npx wrangler deploy --config packages/landing/wrangler.jsonc",
+    "deploy:landing:pages": "npm run build:landing && npx wrangler pages deploy packages/landing/dist --project-name=airgapdroid-landing",
     "build:desktop": "node scripts/fetch-platform-tools.js && npm run build --workspace=@qa-studio/web-ui && node scripts/build-sidecars.js && npm run build --workspace=@qa-studio/desktop",
     "typecheck": "npm run typecheck --workspace=@qa-studio/orchestrator && npm run typecheck --workspace=@qa-studio/web-ui && npm run typecheck --workspace=@qa-studio/landing",
     "start": "concurrently -k -n ORCHESTRATOR,WEB-UI -c cyan,green \"npm run start --workspace=@qa-studio/orchestrator\" \"npm run preview --workspace=@qa-studio/web-ui\"",
