@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+packages/*/dist/
+packages/*/build/
+
+# Environment & local secrets
+.env
+.env.local
+.env.*.local
+
+# Certificates & runtime artifacts
+.mitmproxy/
+certs/
+*.apk
+*.jks
+*.keystore
+
+# Logs & OS files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Tauri Desktop build artifacts & downloaded sidecar binaries
+packages/desktop/src-tauri/target/
+packages/desktop/src-tauri/binaries/
+packages/desktop/src-tauri/gen/
+
+.codegraph
+skills

@@ -1,0 +1,30 @@
+{
+  "name": "local-web-qa-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-hosted local Android QA & Developer Studio — Kiri-first lightweight alternative to Android Studio AVD and BrowserStack",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n ORCHESTRATOR,WEB-UI -c cyan,green \"npm run dev --workspace=@qa-studio/orchestrator\" \"npm run dev --workspace=@qa-studio/web-ui\"",
+    "dev:desktop": "concurrently -k -n ORCHESTRATOR,WEB-UI,TAURI -c cyan,green,magenta \"npm run dev --workspace=@qa-studio/orchestrator\" \"npm run dev --workspace=@qa-studio/web-ui\" \"npm run dev --workspace=@qa-studio/desktop\"",
+    "dev:orchestrator": "npm run dev --workspace=@qa-studio/orchestrator",
+    "dev:web": "npm run dev --workspace=@qa-studio/web-ui",
+    "build": "npm run build --workspace=@qa-studio/orchestrator && npm run build --workspace=@qa-studio/web-ui",
+    "build:desktop": "node scripts/fetch-platform-tools.js && npm run build --workspace=@qa-studio/web-ui && node scripts/build-sidecars.js && npm run build --workspace=@qa-studio/desktop",
+    "typecheck": "npm run typecheck --workspace=@qa-studio/orchestrator && npm run typecheck --workspace=@qa-studio/web-ui",
+    "start": "concurrently -k -n ORCHESTRATOR,WEB-UI -c cyan,green \"npm run start --workspace=@qa-studio/orchestrator\" \"npm run preview --workspace=@qa-studio/web-ui\"",
+    "infra:up": "bash scripts/infra.sh up",
+    "infra:down": "bash scripts/infra.sh down",
+    "runtime:install": "bash scripts/install-runtime.sh",
+    "certs:setup": "bash scripts/setup-certs.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

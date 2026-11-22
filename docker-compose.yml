@@ -1,0 +1,32 @@
+services:
+  # Interactive Android screen & input streaming in browser (http://localhost:8000)
+  ws-scrcpy:
+    image: emptysuns/scrcpy-web:v0.1
+    container_name: qa-studio-ws-scrcpy
+    restart: unless-stopped
+    command: sh -c "adb start-server && (adb connect host.docker.internal:5555 || true); cd dist && exec node ./index.js"
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Live HTTP/HTTPS Network Inspector
+  # Proxy listens on 8080; Web UI MUST listen on 8082 (NOT 8081) to avoid conflicting with React Native Metro Bundler
+  mitmproxy:
+    image: mitmproxy/mitmproxy:latest
+    container_name: qa-studio-mitmweb
+    restart: unless-stopped
+    command: >
+      mitmweb
+      --web-host 0.0.0.0
+      --web-port 8082
+      --listen-host 0.0.0.0
+      --listen-port 8080
+      --no-web-open-browser
+      --set web_password=qa-studio
+      --set confdir=/home/mitmproxy/.mitmproxy
+    ports:
+      - "8080:8080"
+      - "8082:8082"
+    volumes:
+      - ./.mitmproxy:/home/mitmproxy/.mitmproxy
